@@ -18,7 +18,6 @@ const node_path_1 = __importDefault(require("node:path"));
 const commands = [];
 // Grab all the command files from the commands directory you created earlier
 const foldersPath = node_path_1.default.join(__dirname, 'cmds');
-console.log(foldersPath);
 const commandFolders = node_fs_1.default.readdirSync(foldersPath);
 for (const folder of commandFolders) {
     // Grab all the command files from the commands directory you created earlier
@@ -38,12 +37,15 @@ for (const folder of commandFolders) {
 }
 // Construct and prepare an instance of the REST module
 const rest = new discord_js_1.REST().setToken(process.env.BOT_TOKEN);
+const guildID = "800080122732347413";
 // and deploy your commands!
 (() => __awaiter(void 0, void 0, void 0, function* () {
     try {
         console.log(`Started refreshing ${commands.length} application (/) commands.`);
         // The put method is used to fully refresh all commands in the guild with the current set
-        const data = yield rest.put(discord_js_1.Routes.applicationCommands(process.env.CLIENT_ID), { body: commands });
+        const data = yield rest.put(
+        // Routes.applicationCommands(process.env.CLIENT_ID!),
+        discord_js_1.Routes.applicationGuildCommands(process.env.CLIENT_ID, guildID), { body: commands });
         console.log(`Successfully reloaded ${data.length} application (/) commands.`);
     }
     catch (error) {
