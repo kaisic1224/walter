@@ -51,17 +51,22 @@ client.once(discord_js_1.Events.ClientReady, (client) => {
     console.log(`${client.user.tag} is logged in now`);
 });
 client.commands = new discord_js_1.Collection();
-const commandsPath = node_path_1.default.join(__dirname, "cmds");
-const commandFiles = node_fs_1.default.readdirSync(commandsPath).filter((file) => file.endsWith(".js"));
-for (const file of commandFiles) {
-    const filePath = node_path_1.default.join(commandsPath, file);
-    const command = require(filePath);
-    // Set a new item in the Collection with the key as the command name and the value as the exported module
-    if ("data" in command && "execute" in command) {
-        client.commands.set(command.data.name, command);
-    }
-    else {
-        console.log(`[WARNING] The command at ${filePath} is missing a required "data" or "execute" property.`);
+const commandsFolder = node_path_1.default.join(__dirname, "cmds");
+const commands = node_fs_1.default.readdirSync(commandsFolder);
+for (const folder of commands) {
+    const commandsPath = node_path_1.default.join(commandsFolder, folder);
+    const commandFiles = node_fs_1.default.readdirSync(commandsPath).filter(file => file.endsWith('.js'));
+    // Grab the SlashCommandBuilder#toJSON() output of each command's data for deployment
+    for (const file of commandFiles) {
+        const filePath = node_path_1.default.join(commandsPath, file);
+        const command = require(filePath);
+        // Set a new item in the Collection with the key as the command name and the value as the exported module
+        if ("data" in command && "execute" in command) {
+            client.commands.set(command.data.name, command);
+        }
+        else {
+            console.log(`[WARNING] The command at ${filePath} is missing a required "data" or "execute" property.`);
+        }
     }
 }
 client.on(discord_js_1.Events.InteractionCreate, (interaction) => __awaiter(void 0, void 0, void 0, function* () {
@@ -85,4 +90,6 @@ client.on(discord_js_1.Events.InteractionCreate, (interaction) => __awaiter(void
         }
     }
 }));
+const voice_1 = require("@discordjs/voice");
+console.log((0, voice_1.generateDependencyReport)());
 client.login(process.env.BOT_TOKEN);

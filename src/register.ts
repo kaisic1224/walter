@@ -1,6 +1,8 @@
 import { REST, Routes } from 'discord.js';
+import * as dotenv from "dotenv";
 import fs from 'node:fs';
 import path from 'node:path';
+dotenv.config();
 
 const commands = [];
 // Grab all the command files from the commands directory you created earlier
