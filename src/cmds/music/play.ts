@@ -10,8 +10,17 @@ module.exports = {
         async execute(interaction: ChatInputCommandInteraction) {
                 const user = interaction.user;
                 const guild = interaction.guild;
+                const member = guild?.members.cache.get(user.id);
+                const channelId = member?.voice.channelId;
+
+                if (!channelId) {
+                        await interaction.reply(`${user.username} please join a channel first`);
+                        return
+                }
+
+
                 const connection = joinVoiceChannel({
-                        channelId: "800080123536736360",
+                        channelId,
                         guildId: interaction.guildId!,
                         adapterCreator: interaction.guild?.voiceAdapterCreator!
                 })

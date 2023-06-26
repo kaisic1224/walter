@@ -21,8 +21,14 @@ module.exports = {
         return __awaiter(this, void 0, void 0, function* () {
             const user = interaction.user;
             const guild = interaction.guild;
+            const member = guild === null || guild === void 0 ? void 0 : guild.members.cache.get(user.id);
+            const channelId = member === null || member === void 0 ? void 0 : member.voice.channelId;
+            if (!channelId) {
+                yield interaction.reply(`${user.username} please join a channel first`);
+                return;
+            }
             const connection = (0, voice_1.joinVoiceChannel)({
-                channelId: "800080123536736360",
+                channelId,
                 guildId: interaction.guildId,
                 adapterCreator: (_a = interaction.guild) === null || _a === void 0 ? void 0 : _a.voiceAdapterCreator
             });
