@@ -9,6 +9,7 @@ const client = new Client({
                 GatewayIntentBits.MessageContent,
                 GatewayIntentBits.GuildMessages,
                 GatewayIntentBits.GuildVoiceStates,
+                GatewayIntentBits.Guilds,
         ],
 });
 
@@ -62,9 +63,5 @@ client.on(Events.InteractionCreate, async (interaction) => {
                 }
         }
 })
-
-import { generateDependencyReport } from '@discordjs/voice'
-
-console.log(generateDependencyReport());
 
 client.login(process.env.BOT_TOKEN);

@@ -45,6 +45,7 @@ const client = new discord_js_1.Client({
         discord_js_1.GatewayIntentBits.MessageContent,
         discord_js_1.GatewayIntentBits.GuildMessages,
         discord_js_1.GatewayIntentBits.GuildVoiceStates,
+        discord_js_1.GatewayIntentBits.Guilds,
     ],
 });
 client.once(discord_js_1.Events.ClientReady, (client) => {
@@ -90,6 +91,4 @@ client.on(discord_js_1.Events.InteractionCreate, (interaction) => __awaiter(void
         }
     }
 }));
-const voice_1 = require("@discordjs/voice");
-console.log((0, voice_1.generateDependencyReport)());
 client.login(process.env.BOT_TOKEN);
