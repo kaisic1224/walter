@@ -54,7 +54,10 @@ module.exports = {
                 const opts = {
                     limit: 1
                 };
-                const search = yield ytsr(filter1.url, opts);
+                if (!filter1.url) {
+                    console.log(filter1);
+                }
+                const search = yield ytsr(filter1 === null || filter1 === void 0 ? void 0 : filter1.url, opts);
                 console.log(search);
                 url = search.items[0].url;
                 title = search.items[0].title;
@@ -140,11 +143,16 @@ module.exports = {
                 const subscription = connection.subscribe(audioPlayer);
             }
             audioPlayer.on(voice_1.AudioPlayerStatus.Idle, () => __awaiter(this, void 0, void 0, function* () {
+                const key = client.queue.keyAt(0);
+                const currentResource = client.queue.get(key);
                 if (Array.from(client.queue.keys()).length <= 1) {
                     // do nothing, be on standby
+                    // check if current resource is finished playing
+                    if (currentResource.ended) {
+                        client.queue.delete(key);
+                    }
                     return;
                 }
-                const key = client.queue.keyAt(0);
                 const nextKey = client.queue.keyAt(1);
                 const nextResource = client.queue.get(nextKey);
                 audioPlayer.play(nextResource);

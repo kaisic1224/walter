@@ -44,7 +44,10 @@ module.exports = {
                         const opts = {
                                 limit: 1
                         };
-                        const search = await ytsr(filter1!.url!, opts)
+                        if (!filter1.url) {
+                                console.log(filter1)
+                        }
+                        const search = await ytsr(filter1?.url!, opts)
                         console.log(search)
 
                         url = search.items[0].url;
@@ -145,11 +148,16 @@ module.exports = {
 
 
                 audioPlayer.on(AudioPlayerStatus.Idle, async () => {
+                        const key = client.queue.keyAt(0);
+                        const currentResource = client.queue.get(key)
                         if (Array.from(client.queue.keys()).length <= 1) {
                                 // do nothing, be on standby
+                                // check if current resource is finished playing
+                                if (currentResource.ended) {
+                                        client.queue.delete(key)
+                                }
                                 return;
                         }
-                        const key = client.queue.keyAt(0);
                         const nextKey = client.queue.keyAt(1);
                         const nextResource = client.queue.get(nextKey);
 
