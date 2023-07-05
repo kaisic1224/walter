@@ -1,11 +1,12 @@
 import { ChatInputCommandInteraction, Collection, Colors, SlashCommandBuilder } from "discord.js";
 import { AudioPlayerStatus, AudioResource, NoSubscriberBehavior, StreamType, VoiceConnectionStatus, createAudioPlayer, createAudioResource, demuxProbe, joinVoiceChannel } from "@discordjs/voice";
 import { createReadStream, createWriteStream } from "fs";
-import play from 'play-dl'
+import play, { playlist_info } from 'play-dl'
 import ytsr = require('ytsr')
 import { EmbedBuilder } from "@discordjs/builders";
 
 
+const nathanFace = "https://wompampsupport.azureedge.net/fetchimage?siteId=7575&v=2&jpgQuality=100&width=700&url=https%3A%2F%2Fi.kym-cdn.com%2Fphotos%2Fimages%2Fnewsfeed%2F002%2F322%2F154%2F667.jpg"
 const audioFormats = [
         139,
         233,
@@ -30,7 +31,6 @@ module.exports = {
                 const member = guild?.members.cache.get(user.id);
                 const channelId = member?.voice.channelId;
                 const channel = await guild?.channels.fetch(channelId!)
-                const queue = new Collection();
                 let url = interaction.options.getString("song", true);
                 let title = "";
                 let ytChannelName = "";
@@ -38,25 +38,29 @@ module.exports = {
                 let ytChannelLink = "";
                 let thumbnail = "";
                 let duration = "";
+                const isLink = url.slice(0, 5) === "https" || url.slice(8, 11) === "www"
+                const isYtPlaylist = url.slice(12, 32) === "youtube.com/playlist"
+                const isSpotify = url.slice(8, 20) === "open.spotify";
                 const fetchSong = async (song: string) => {
-                        const filters1 = await ytsr.getFilters(song)
-                        const filter1 = filters1.get('Type')?.get('Video')
-                        const opts = {
-                                limit: 1
-                        };
-                        if (!filter1.url) {
-                                console.log(filter1)
-                        }
-                        const search = await ytsr(filter1?.url!, opts)
-                        console.log(search)
+                        if (isSpotify) return
 
-                        url = search.items[0].url;
-                        title = search.items[0].title;
-                        ytChannelName = search.items[0].author?.name
-                        ytChannelAvatar = search.items[0].author?.bestAvatar.url
-                        ytChannelLink = search.items[0].author?.url
-                        thumbnail = search.items[0].bestThumbnail?.url
-                        duration = search.items[0].duration;
+                        let search;
+                        let param;
+                        if (isLink && !isSpotify) {
+                                const link = new URL(song);
+                                const searchParams = new URLSearchParams(link.search)
+                                param = searchParams.get('v') || url.split('.be/')[1]
+                        }
+                        search = await play.search(song, { source: { youtube: 'video' }, limit: 1 })
+                        console.log(search[0])
+
+                        url = search[0].url;
+                        title = search[0].title || "packgod stole your hair";
+                        ytChannelName = search[0].channel?.name || "alinity mom";
+                        ytChannelAvatar = search[0].channel?.iconURL() || nathanFace;
+                        ytChannelLink = search[0].channel?.url || "https://youtu.be/X-CC7rfO2us"
+                        thumbnail = search[0].thumbnails[0].url
+                        duration = search[0].durationRaw;
 
                         //spare my storage
                         let [hours, minutes, seconds = -1] = duration.split(':').map((time) => parseInt(time))
@@ -108,6 +112,7 @@ module.exports = {
                 if (memberClient?.voice.channel) {
                         if (!client.queue) {
                                 client.queue = new Collection();
+                                client.player = audioPlayer;
                         }
                         const { channelId } = memberClient?.voice;
                         const connection = joinVoiceChannel({
@@ -115,15 +120,27 @@ module.exports = {
                                 guildId: interaction.guildId!,
                                 adapterCreator: interaction.guild?.voiceAdapterCreator!
                         });
-                        const resource = await fetchSong(url);
-                        client.queue.set(url, resource);
+
+                        if (isYtPlaylist) {
+                                const playlist = await play.playlist_info(url, { incomplete: true });
+                                const videos = await playlist.all_videos();
+                                videos.map(async (video) => {
+                                        const resource = await fetchSong(video.url)
+                                        client.queue.set(video.url, resource);
+                                })
+                        } else {
+                                const resource = await fetchSong(url);
+                                if (resource === null) {
+                                        await interaction.editReply("Error finding song, try again")
+                                        return;
+                                }
+                                client.queue.set(url, resource);
+                        }
 
                         const key = client.queue.keyAt(0);
                         const nextResource = client.queue.get(key);
                         // TODO
-                        console.log(nextResource.started)
                         if (nextResource.started) {
-                                console.log(client.queue)
                                 return;
                         }
 
@@ -133,7 +150,12 @@ module.exports = {
 
                 } else {
                         client.queue = new Collection();
+                        client.player = audioPlayer;
                         const resource = await fetchSong(url);
+                        if (resource === null) {
+                                await interaction.editReply("Error finding song, try again")
+                                return;
+                        }
                         client.queue.set(url, resource);
 
                         const key = client.queue.keyAt(0);
@@ -161,13 +183,15 @@ module.exports = {
                         const nextKey = client.queue.keyAt(1);
                         const nextResource = client.queue.get(nextKey);
 
-                        audioPlayer.play(nextResource);
                         client.queue.delete(key)
+                        audioPlayer.play(nextResource);
 
                         const subscription = connection.subscribe(audioPlayer);
                 });
                 audioPlayer.on(AudioPlayerStatus.Playing, async () => {
                         console.log('The audio player has started playing!');
+                        const key = client.queue.keyAt(0);
+                        await fetchSong(key)
                         const reply = new EmbedBuilder()
                                 .setTitle(title)
                                 .setURL(url)

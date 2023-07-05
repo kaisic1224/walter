@@ -37,7 +37,7 @@ const guildID = "800080122732347413";
                 // The put method is used to fully refresh all commands in the guild with the current set
                 const data = await rest.put(
                         // Routes.applicationCommands(process.env.CLIENT_ID!),
-                        Routes.applicationGuildCommands(process.env.CLIENT_ID!, guildID),
+                        Routes.applicationCommands(process.env.CLIENT_ID!),
                         { body: commands },
                 );
 

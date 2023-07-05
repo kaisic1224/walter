@@ -18,7 +18,15 @@ module.exports = {
     data: cmd,
     execute(interaction) {
         return __awaiter(this, void 0, void 0, function* () {
-            const embed = new builders_1.EmbedBuilder();
+            const { client, user } = interaction;
+            console.log(client.queue);
+            if (Array.from(client.queue.keys()).length === 0) {
+                yield interaction.reply("cannot skip when nothing in queue");
+                return;
+            }
+            client.player.stop(true);
+            const embed = new builders_1.EmbedBuilder()
+                .setTitle(`Skipping current track: ${user.username}`);
             yield interaction.reply({ embeds: [embed] });
         });
     }

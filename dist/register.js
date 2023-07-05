@@ -70,7 +70,7 @@ const guildID = "800080122732347413";
         // The put method is used to fully refresh all commands in the guild with the current set
         const data = yield rest.put(
         // Routes.applicationCommands(process.env.CLIENT_ID!),
-        discord_js_1.Routes.applicationGuildCommands(process.env.CLIENT_ID, guildID), { body: commands });
+        discord_js_1.Routes.applicationCommands(process.env.CLIENT_ID), { body: commands });
         console.log(`Successfully reloaded ${data.length} application (/) commands.`);
     }
     catch (error) {
