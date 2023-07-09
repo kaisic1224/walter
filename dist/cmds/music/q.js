@@ -18,8 +18,35 @@ module.exports = {
     data: cmd,
     execute(interaction) {
         return __awaiter(this, void 0, void 0, function* () {
-            console.log(interaction.client.currentSong);
-            const embed = new builders_1.EmbedBuilder();
+            const { client } = interaction;
+            if (!client.queue) {
+                yield interaction.reply("No queue currently");
+                return;
+            }
+            let embed = new builders_1.EmbedBuilder()
+                .setTitle("Queue");
+            if (Array.from(client.queue.keys()).length === 0) {
+                embed.setFields([
+                    {
+                        name: "No tracks currently in queue",
+                        value: "such empty :sob:",
+                        inline: false
+                    }
+                ]);
+            }
+            else {
+                let index = 1;
+                const fields = Array.from(client.queue.mapValues((resourceItem) => {
+                    const field = {
+                        name: `${index}. ${resourceItem.title} (${resourceItem.duration})`,
+                        value: `Requested by: ${resourceItem.requestee.username}`,
+                        inline: false
+                    };
+                    index++;
+                    return field;
+                }));
+                embed.setFields(fields.map((fieldKv) => fieldKv[1]));
+            }
             yield interaction.reply({ embeds: [embed] });
         });
     }

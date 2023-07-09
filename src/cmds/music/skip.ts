@@ -9,16 +9,27 @@ const cmd = new SlashCommandBuilder()
 module.exports = {
         data: cmd,
         async execute(interaction: ChatInputCommandInteraction) {
-                const { client, user } = interaction;
-                console.log(client.queue)
+                const { client } = interaction;
+
+                if (!client.queue) {
+                        await interaction.reply("Cannot skip when nothing is playing")
+                        return;
+                }
+                const key = client.queue.keyAt(0);
+                const currentResource = client.queue.get(key);
                 if (Array.from(client.queue.keys()).length === 0) {
-                        await interaction.reply("cannot skip when nothing in queue")
+                        await interaction.reply("Cannot skip when nothing is playing")
                         return;
                 }
                 (client.player as AudioPlayer).stop(true)
 
                 const embed = new EmbedBuilder()
-                        .setTitle(`Skipping current track: ${user.username}`)
+                        .setTitle(`Skipped current track: ${currentResource.title}`)
+                        .setFooter({
+                                text: currentResource.requestee.username,
+                                iconURL: currentResource.requestee.displayAvatarURL() || currentResource.requestee.defaultAvatarURL
+                        })
+                        .setTimestamp(Date.now())
                 await interaction.reply({ embeds: [embed] })
         }
 }

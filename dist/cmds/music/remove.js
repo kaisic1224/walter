@@ -11,19 +11,14 @@ var __awaiter = (this && this.__awaiter) || function (thisArg, _arguments, P, ge
 Object.defineProperty(exports, "__esModule", { value: true });
 const discord_js_1 = require("discord.js");
 const cmd = new discord_js_1.SlashCommandBuilder()
-    .setName("pause")
-    .setDescription("pause currently playing track");
+    .setName("remove")
+    .addNumberOption((option) => option.setName("position").setDescription("the number to remove").setRequired(true))
+    .setDescription("skips currently playing song");
 module.exports = {
     data: cmd,
     execute(interaction) {
         return __awaiter(this, void 0, void 0, function* () {
             const { client } = interaction;
-            if (!client.player) {
-                yield interaction.reply("no current player");
-                return;
-            }
-            client.player.pause();
-            yield interaction.reply("current track paused");
         });
     }
 };

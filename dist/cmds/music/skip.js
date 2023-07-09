@@ -18,15 +18,25 @@ module.exports = {
     data: cmd,
     execute(interaction) {
         return __awaiter(this, void 0, void 0, function* () {
-            const { client, user } = interaction;
-            console.log(client.queue);
+            const { client } = interaction;
+            if (!client.queue) {
+                yield interaction.reply("Cannot skip when nothing is playing");
+                return;
+            }
+            const key = client.queue.keyAt(0);
+            const currentResource = client.queue.get(key);
             if (Array.from(client.queue.keys()).length === 0) {
-                yield interaction.reply("cannot skip when nothing in queue");
+                yield interaction.reply("Cannot skip when nothing is playing");
                 return;
             }
             client.player.stop(true);
             const embed = new builders_1.EmbedBuilder()
-                .setTitle(`Skipping current track: ${user.username}`);
+                .setTitle(`Skipped current track: ${currentResource.title}`)
+                .setFooter({
+                text: currentResource.requestee.username,
+                iconURL: currentResource.requestee.displayAvatarURL() || currentResource.requestee.defaultAvatarURL
+            })
+                .setTimestamp(Date.now());
             yield interaction.reply({ embeds: [embed] });
         });
     }

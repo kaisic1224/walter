@@ -7,5 +7,13 @@ const cmd = new SlashCommandBuilder()
 module.exports = {
         data: cmd,
         async execute(interaction: ChatInputCommandInteraction) {
+                const { client } = interaction;
+
+                if (!client.player) {
+                        await interaction.reply("no current player")
+                        return;
+                }
+                client.player.pause()
+                await interaction.reply("current track paused")
         }
 }
