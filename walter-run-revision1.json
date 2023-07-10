@@ -1,9 +1,9 @@
 {
-    "taskDefinitionArn": "arn:aws:ecs:us-east-1:355863132864:task-definition/walter-run:4",
+    "taskDefinitionArn": "arn:aws:ecs:us-east-1:355863132864:task-definition/walter-run:6",
     "containerDefinitions": [
         {
             "name": "discord",
-            "image": "walter",
+            "image": "355863132864.dkr.ecr.us-east-1.amazonaws.com/walter:5029ee9785ebb46fe84ae3c55bfb846c7e11c158",
             "cpu": 0,
             "portMappings": [
                 {
@@ -39,7 +39,7 @@
     "family": "walter-run",
     "executionRoleArn": "arn:aws:iam::355863132864:role/ecsTaskExecutionRole",
     "networkMode": "awsvpc",
-    "revision": 4,
+    "revision": 6,
     "volumes": [],
     "status": "ACTIVE",
     "requiresAttributes": [
@@ -50,10 +50,16 @@
             "name": "ecs.capability.execution-role-awslogs"
         },
         {
+            "name": "com.amazonaws.ecs.capability.ecr-auth"
+        },
+        {
             "name": "com.amazonaws.ecs.capability.docker-remote-api.1.19"
         },
         {
             "name": "ecs.capability.env-files.s3"
+        },
+        {
+            "name": "ecs.capability.execution-role-ecr-pull"
         },
         {
             "name": "ecs.capability.extensible-ephemeral-storage"
@@ -85,7 +91,7 @@
         "cpuArchitecture": "X86_64",
         "operatingSystemFamily": "LINUX"
     },
-    "registeredAt": "2023-07-10T07:38:25.606Z",
+    "registeredAt": "2023-07-10T08:11:34.695Z",
     "registeredBy": "arn:aws:iam::355863132864:root",
     "tags": []
 }
