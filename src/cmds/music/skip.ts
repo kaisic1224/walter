@@ -1,6 +1,6 @@
 import { EmbedBuilder } from "@discordjs/builders";
 import { AudioPlayer } from "@discordjs/voice";
-import { ChatInputCommandInteraction, SlashCommandBuilder } from "discord.js";
+import { ChatInputCommandInteraction, Colors, SlashCommandBuilder } from "discord.js";
 
 const cmd = new SlashCommandBuilder()
         .setName("skip")
@@ -25,6 +25,7 @@ module.exports = {
 
                 const embed = new EmbedBuilder()
                         .setTitle(`Skipped current track: ${currentResource.title}`)
+                        .setColor(Colors.Fuchsia)
                         .setFooter({
                                 text: currentResource.requestee.username,
                                 iconURL: currentResource.requestee.displayAvatarURL() || currentResource.requestee.defaultAvatarURL

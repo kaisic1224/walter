@@ -1,0 +1,10 @@
+optimize subscriptions
+- remove where unnecssary and resuse from client
+
+manage multiple queues and commands at once
+
+docker
+
+game?
+
+lyrics HOLY THIS IS GONNA TAKE FOREVER

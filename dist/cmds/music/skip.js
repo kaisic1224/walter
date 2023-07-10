@@ -32,6 +32,7 @@ module.exports = {
             client.player.stop(true);
             const embed = new builders_1.EmbedBuilder()
                 .setTitle(`Skipped current track: ${currentResource.title}`)
+                .setColor(discord_js_1.Colors.Fuchsia)
                 .setFooter({
                 text: currentResource.requestee.username,
                 iconURL: currentResource.requestee.displayAvatarURL() || currentResource.requestee.defaultAvatarURL

@@ -1,4 +1,4 @@
-import { ChatInputCommandInteraction, Collection, Colors, SlashCommandBuilder } from "discord.js";
+import { ChatInputCommandInteraction, Collection, Colors, SlashCommandBuilder, VoiceChannel } from "discord.js";
 import { AudioPlayerError, AudioPlayerStatus, NoSubscriberBehavior, createAudioPlayer, createAudioResource, joinVoiceChannel } from "@discordjs/voice";
 import { createReadStream, createWriteStream } from "fs";
 import play, { SpotifyAlbum, SpotifyPlaylist, SpotifyTrack, spotify } from 'play-dl'
@@ -20,8 +20,7 @@ module.exports = {
                 const channelId = member?.voice.channelId;
                 const channel = await guild?.channels.fetch(channelId!)
                 let url = interaction.options.getString("song", true);
-                let position = interaction.options.getNumber("position")
-                console.log(position)
+                let position = interaction.options.getNumber("position");
                 let title = "";
                 let ytChannelName = "";
                 let ytChannelAvatar = "";
@@ -77,7 +76,7 @@ module.exports = {
                 if (!channelId) {
                         await interaction.reply(`${user.username} please join a channel first`);
                         return
-                } else if (!channel?.joinable) {
+                } else if (!(channel as VoiceChannel)?.joinable) {
                         // if bot cannot join user's channel
                         await interaction.reply(`Cannot join #${channel?.name} because it does not have permission`)
                         return
@@ -87,7 +86,8 @@ module.exports = {
                 const queueEmbed = new EmbedBuilder()
                         .setTitle(`Enqued track: ${url}`)
                         .setColor(Colors.DarkOrange)
-                await interaction.reply({ embeds: [queueEmbed] })
+                interaction.channel?.send({ embeds: [queueEmbed] })
+                await interaction.deferReply()
                 const audioPlayer = createAudioPlayer({
                         behaviors: {
                                 noSubscriber: NoSubscriberBehavior.Play
@@ -102,6 +102,7 @@ module.exports = {
                 const memberClient = guild?.members.cache.get(client.user.id)
                 // if someone plays command while bot is already in channel
                 if (memberClient?.voice.channel) {
+                        await interaction.editReply("ok")
                         if (!client.queue) {
                                 client.queue = new Collection();
                                 client.player = audioPlayer;
@@ -200,8 +201,6 @@ module.exports = {
                                                 const qs = await play.search(`${track.name}`, { limit: 1, source: { youtube: 'video' } })
                                                 const stream = await play.stream(qs[0].url)
                                                 const resource = createAudioResource(stream.stream, { inputType: stream.type })
-                                                console.log(stream)
-                                                console.log(resource)
                                                 duration = `${Math.floor(track.durationInSec / 60)}: ${track.durationInSec % 60}`
                                                 client.queue.set(`${index}:${track.url}`, {
                                                         resource,
@@ -218,17 +217,21 @@ module.exports = {
                                 }
                         } else {
                                 const resource = await fetchSong(url);
-                                console.log(resource)
                                 if (resource === null) {
                                         await interaction.editReply("Error finding song, try again")
                                         return;
                                 }
                                 const queueNumber = Array.from(client.queue.keys()).length
-                                console.log("Wtf")
-                                if (!position) return;
-                                if (position < queueNumber && 1 < position) {
+                                position = position ? position - 1 : queueNumber
+                                const values = [];
+                                if (position < queueNumber && 0 < position) {
+                                        for (let i = 0; i < position; i++) {
+                                                let key = client.queue.keyAt(i);
+                                                let value = client.queue.get(key);
+                                                values.push([`${i}:${key.split(":")[1]}`, value]);
+                                        }
                                 }
-                                client.queue.set(`${queueNumber}:${url}`, {
+                                values.push([`${position}:${url}`, {
                                         resource,
                                         url,
                                         title,
@@ -238,22 +241,38 @@ module.exports = {
                                         thumbnail,
                                         duration,
                                         requestee: user
-
-                                });
+                                }])
+                                if (position < queueNumber && 0 < position) {
+                                        for (let i = position; i < queueNumber; i++) {
+                                                let key = client.queue.keyAt(i);
+                                                let value = client.queue.get(key);
+                                                values.push([`${i + 1}:${key.split(":")[1]}`, value]);
+                                        }
+                                }
+                                if (position < queueNumber && 0 < position) {
+                                        const newQ = new Collection();
+                                        values.map((value) => {
+                                                newQ.set(value[0], value[1])
+                                        })
+                                        client.queue = newQ;
+                                } else {
+                                        values.map((value) => {
+                                                client.queue.set(value[0], value[1])
+                                        })
+                                }
 
                                 const key = client.queue.keyAt(0);
                                 const currentResource = client.queue.get(key);
                                 // TODO
-                                console.log(currentResource)
                                 if (currentResource.resource.started === true) {
                                         return;
                                 }
 
-                                console.log(currentResource)
                                 audioPlayer.play(currentResource.resource);
                                 const subscription = connection.subscribe(audioPlayer)
                         }
                 } else {
+                        interaction.editReply("ok")
                         client.queue = new Collection();
                         client.player = audioPlayer;
                         const resource = await fetchSong(url);

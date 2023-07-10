@@ -9,6 +9,7 @@ var __awaiter = (this && this.__awaiter) || function (thisArg, _arguments, P, ge
     });
 };
 Object.defineProperty(exports, "__esModule", { value: true });
+const builders_1 = require("@discordjs/builders");
 const discord_js_1 = require("discord.js");
 const cmd = new discord_js_1.SlashCommandBuilder()
     .setName("remove")
@@ -19,6 +20,20 @@ module.exports = {
     execute(interaction) {
         return __awaiter(this, void 0, void 0, function* () {
             const { client } = interaction;
+            const number = interaction.options.getNumber("position", true) - 1;
+            const keys = Array.from(client.queue.keys());
+            const key = keys.find((key) => parseInt(key.toString().split(":")[0]) === number);
+            const resource = client.queue.get(key);
+            client.queue.delete(key);
+            const embed = new builders_1.EmbedBuilder()
+                .setTitle(`Deleted track ${number}: ${resource.title}`)
+                .setColor(discord_js_1.Colors.Red)
+                .setTimestamp(Date.now())
+                .setFooter({
+                text: resource.requestee.username,
+                iconURL: resource.requestee.displayAvatarURL() || resource.requestee.defaultAvatarURL
+            });
+            yield interaction.reply({ embeds: [embed] });
         });
     }
 };

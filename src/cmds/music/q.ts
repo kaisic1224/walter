@@ -1,5 +1,5 @@
 import { EmbedBuilder } from "@discordjs/builders";
-import { ChatInputCommandInteraction, Collection, EmbedField, SlashCommandBuilder } from "discord.js";
+import { ChatInputCommandInteraction, Collection, Colors, EmbedField, SlashCommandBuilder } from "discord.js";
 
 const cmd = new SlashCommandBuilder()
         .setName("q")
@@ -16,6 +16,7 @@ module.exports = {
                 }
                 let embed = new EmbedBuilder()
                         .setTitle("Queue")
+                        .setColor(Colors.DarkGold)
                 if (Array.from(client.queue.keys()).length === 0) {
                         embed.setFields(
                                 [

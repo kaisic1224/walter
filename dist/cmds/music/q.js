@@ -24,7 +24,8 @@ module.exports = {
                 return;
             }
             let embed = new builders_1.EmbedBuilder()
-                .setTitle("Queue");
+                .setTitle("Queue")
+                .setColor(discord_js_1.Colors.DarkGold);
             if (Array.from(client.queue.keys()).length === 0) {
                 embed.setFields([
                     {

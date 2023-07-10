@@ -1,6 +1,6 @@
 import { EmbedBuilder } from "@discordjs/builders";
 import { AudioPlayer } from "@discordjs/voice";
-import { ChatInputCommandInteraction, SlashCommandBuilder } from "discord.js";
+import { ChatInputCommandInteraction, Collection, Colors, SlashCommandBuilder } from "discord.js";
 
 const cmd = new SlashCommandBuilder()
         .setName("remove")
@@ -11,5 +11,23 @@ module.exports = {
         data: cmd,
         async execute(interaction: ChatInputCommandInteraction) {
                 const { client } = interaction;
+                const number = interaction.options.getNumber("position", true) - 1;
+
+                const keys = Array.from(client.queue.keys());
+                const key = keys.find((key) => parseInt(key.toString().split(":")[0]) === number)
+
+                const resource = client.queue.get(key);
+                client.queue.delete(key);
+
+                const embed = new EmbedBuilder()
+                        .setTitle(`Deleted track ${number}: ${resource.title}`)
+                        .setColor(Colors.Red)
+                        .setTimestamp(Date.now())
+                        .setFooter({
+                                text: resource.requestee.username,
+                                iconURL: resource.requestee.displayAvatarURL() || resource.requestee.defaultAvatarURL
+
+                        })
+                await interaction.reply({ embeds: [embed] })
         }
 }
