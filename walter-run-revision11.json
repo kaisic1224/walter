@@ -1,9 +1,9 @@
 {
-    "taskDefinitionArn": "arn:aws:ecs:us-east-1:355863132864:task-definition/walter-run:6",
+    "taskDefinitionArn": "arn:aws:ecs:us-east-1:355863132864:task-definition/walter-run:11",
     "containerDefinitions": [
         {
             "name": "discord",
-            "image": "355863132864.dkr.ecr.us-east-1.amazonaws.com/walter:5029ee9785ebb46fe84ae3c55bfb846c7e11c158",
+            "image": "355863132864.dkr.ecr.us-east-1.amazonaws.com/walter:c967de7dcf9e8b27fa518ce6e0fb3b96b7b6c762",
             "cpu": 0,
             "portMappings": [
                 {
@@ -24,7 +24,6 @@
             ],
             "mountPoints": [],
             "volumesFrom": [],
-            "ulimits": [],
             "logConfiguration": {
                 "logDriver": "awslogs",
                 "options": {
@@ -39,7 +38,7 @@
     "family": "walter-run",
     "executionRoleArn": "arn:aws:iam::355863132864:role/ecsTaskExecutionRole",
     "networkMode": "awsvpc",
-    "revision": 6,
+    "revision": 11,
     "volumes": [],
     "status": "ACTIVE",
     "requiresAttributes": [
@@ -91,7 +90,7 @@
         "cpuArchitecture": "X86_64",
         "operatingSystemFamily": "LINUX"
     },
-    "registeredAt": "2023-07-10T08:11:34.695Z",
-    "registeredBy": "arn:aws:iam::355863132864:root",
+    "registeredAt": "2023-07-11T04:43:55.346Z",
+    "registeredBy": "arn:aws:iam::355863132864:user/walter",
     "tags": []
 }
