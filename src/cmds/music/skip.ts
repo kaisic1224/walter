@@ -1,5 +1,5 @@
 import { EmbedBuilder } from "@discordjs/builders";
-import { AudioPlayer } from "@discordjs/voice";
+import { AudioPlayer, AudioResource } from "@discordjs/voice";
 import { ChatInputCommandInteraction, Colors, SlashCommandBuilder } from "discord.js";
 
 const cmd = new SlashCommandBuilder()
@@ -11,6 +11,8 @@ module.exports = {
         async execute(interaction: ChatInputCommandInteraction) {
                 const { client } = interaction;
 
+                client.player.stop(true);
+
                 if (!client.queue) {
                         await interaction.reply("Cannot skip when nothing is playing")
                         return;
@@ -21,7 +23,6 @@ module.exports = {
                         await interaction.reply("Cannot skip when nothing is playing")
                         return;
                 }
-                (client.player as AudioPlayer).stop(true)
 
                 const embed = new EmbedBuilder()
                         .setTitle(`Skipped current track: ${currentResource.title}`)
