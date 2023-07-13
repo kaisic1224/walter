@@ -1,9 +1,9 @@
 {
-    "taskDefinitionArn": "arn:aws:ecs:us-east-1:355863132864:task-definition/walter-run:11",
+    "taskDefinitionArn": "arn:aws:ecs:us-east-1:355863132864:task-definition/walter-run:33",
     "containerDefinitions": [
         {
             "name": "discord",
-            "image": "355863132864.dkr.ecr.us-east-1.amazonaws.com/walter:c967de7dcf9e8b27fa518ce6e0fb3b96b7b6c762",
+            "image": "355863132864.dkr.ecr.us-east-1.amazonaws.com/walter:7934165d58c48114eb7d87697fdd9b7e01673509",
             "cpu": 0,
             "portMappings": [
                 {
@@ -18,7 +18,7 @@
             "environment": [],
             "environmentFiles": [
                 {
-                    "value": "arn:aws:s3:::myawssecrets1224/walter.env",
+                    "value": "arn:aws:s3:::myawssecrets1224/walter/.env",
                     "type": "s3"
                 }
             ],
@@ -36,9 +36,10 @@
         }
     ],
     "family": "walter-run",
-    "executionRoleArn": "arn:aws:iam::355863132864:role/ecsTaskExecutionRole",
+    "taskRoleArn": "arn:aws:iam::355863132864:role/waltern",
+    "executionRoleArn": "arn:aws:iam::355863132864:role/waltern",
     "networkMode": "awsvpc",
-    "revision": 11,
+    "revision": 33,
     "volumes": [],
     "status": "ACTIVE",
     "requiresAttributes": [
@@ -56,6 +57,9 @@
         },
         {
             "name": "ecs.capability.env-files.s3"
+        },
+        {
+            "name": "com.amazonaws.ecs.capability.task-iam-role"
         },
         {
             "name": "ecs.capability.execution-role-ecr-pull"
@@ -90,7 +94,7 @@
         "cpuArchitecture": "X86_64",
         "operatingSystemFamily": "LINUX"
     },
-    "registeredAt": "2023-07-11T04:43:55.346Z",
-    "registeredBy": "arn:aws:iam::355863132864:user/walter",
+    "registeredAt": "2023-07-13T19:53:00.803Z",
+    "registeredBy": "arn:aws:iam::355863132864:root",
     "tags": []
 }

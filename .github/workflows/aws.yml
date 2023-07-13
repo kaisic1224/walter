@@ -35,7 +35,7 @@ env:
   ECR_REPOSITORY: walter           # set this to your Amazon ECR repository name
   ECS_SERVICE: walter-club                 # set this to your Amazon ECS service name
   ECS_CLUSTER: walter-club                 # set this to your Amazon ECS cluster name
-  ECS_TASK_DEFINITION: walter-run-revision11.json # set this to the path to your Amazon ECS task definition
+  ECS_TASK_DEFINITION: walter-run-revision33.json # set this to the path to your Amazon ECS task definition
                                                # file, e.g. .aws/task-definition.json
   CONTAINER_NAME: discord           # set this to the name of the container in the
                                                # containerDefinitions section of your task definition
