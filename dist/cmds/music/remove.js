@@ -26,7 +26,7 @@ module.exports = {
             const resource = client.queue.get(key);
             client.queue.delete(key);
             const embed = new builders_1.EmbedBuilder()
-                .setTitle(`Deleted track ${number}: ${resource.title}`)
+                .setTitle(`Deleted track ${number + 1}: ${resource.title}`)
                 .setColor(discord_js_1.Colors.Red)
                 .setTimestamp(Date.now())
                 .setFooter({

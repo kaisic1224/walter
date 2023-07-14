@@ -19,6 +19,7 @@ module.exports = {
     execute(interaction) {
         return __awaiter(this, void 0, void 0, function* () {
             const { client } = interaction;
+            client.player.stop(true);
             if (!client.queue) {
                 yield interaction.reply("Cannot skip when nothing is playing");
                 return;
@@ -29,7 +30,6 @@ module.exports = {
                 yield interaction.reply("Cannot skip when nothing is playing");
                 return;
             }
-            client.player.stop(true);
             const embed = new builders_1.EmbedBuilder()
                 .setTitle(`Skipped current track: ${currentResource.title}`)
                 .setColor(discord_js_1.Colors.Fuchsia)
