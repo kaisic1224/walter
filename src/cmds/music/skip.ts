@@ -1,5 +1,4 @@
 import { EmbedBuilder } from "@discordjs/builders";
-import { AudioPlayer, AudioResource } from "@discordjs/voice";
 import { ChatInputCommandInteraction, Colors, SlashCommandBuilder } from "discord.js";
 
 const cmd = new SlashCommandBuilder()
@@ -19,6 +18,7 @@ module.exports = {
                 }
                 const key = client.queue.keyAt(0);
                 const currentResource = client.queue.get(key);
+                client.queue.delete(key);
                 if (Array.from(client.queue.keys()).length === 0) {
                         await interaction.reply("Cannot skip when nothing is playing")
                         return;

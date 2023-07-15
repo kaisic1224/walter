@@ -1,8 +1,6 @@
 import { Client, Collection, Events, GatewayIntentBits } from "discord.js";
-import * as dotenv from "dotenv";
 import path from "node:path";
 import fs from "node:fs";
-dotenv.config();
 
 const client = new Client({
         intents: [

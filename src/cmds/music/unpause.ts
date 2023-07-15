@@ -1,5 +1,4 @@
 import { EmbedBuilder } from "@discordjs/builders";
-import { AudioPlayer, AudioPlayerStatus } from "@discordjs/voice";
 import { ChatInputCommandInteraction, SlashCommandBuilder } from "discord.js";
 
 const cmd = new SlashCommandBuilder()

@@ -1,7 +1,6 @@
 import { ChatInputCommandInteraction, Collection, Colors, SlashCommandBuilder, VoiceChannel } from "discord.js";
-import { AudioPlayerError, AudioPlayerStatus, NoSubscriberBehavior, createAudioPlayer, createAudioResource, joinVoiceChannel } from "@discordjs/voice";
-import { createReadStream, createWriteStream } from "fs";
-import play, { SpotifyAlbum, SpotifyPlaylist, SpotifyTrack, spotify } from 'play-dl'
+import { AudioPlayerStatus, NoSubscriberBehavior, VoiceConnection, createAudioPlayer, createAudioResource, joinVoiceChannel } from "@discordjs/voice";
+import play, { SpotifyAlbum, SpotifyPlaylist, SpotifyTrack } from 'play-dl'
 import { EmbedBuilder } from "@discordjs/builders";
 
 function debounce(f: Function, timeout = (1000 * 60 * 3)) {
@@ -45,6 +44,7 @@ module.exports = {
                 const fetchSong = async (song: string) => {
                         let search;
                         let param;
+                        // is link (not search query) and is not a spotify link
                         if (isLink && !isSpotify) {
                                 if (!play.yt_validate) {
                                         await interaction.editReply("Not a valid link")
@@ -52,6 +52,7 @@ module.exports = {
                                 }
                                 const link = new URL(song);
                                 const searchParams = new URLSearchParams(link.search)
+                                // get video id
                                 param = searchParams.get('v') || url.split('.be/')[1]
                         }
                         search = await play.search(song, { source: { youtube: 'video' }, limit: 1 })
@@ -105,26 +106,22 @@ module.exports = {
                                 noSubscriber: NoSubscriberBehavior.Play
                         }
                 });
-                const connection = joinVoiceChannel({
-                        channelId,
-                        guildId: interaction.guildId!,
-                        adapterCreator: interaction.guild?.voiceAdapterCreator!
-                })
 
-                const memberClient = guild?.members.cache.get(client.user.id)
+
                 // if someone plays command while bot is already in channel
+                let connection: VoiceConnection;
+                const memberClient = guild?.members.cache.get(client.user.id)
                 if (memberClient?.voice.channel) {
                         await interaction.editReply("ok")
                         if (!client.queue) {
                                 client.queue = new Collection();
                                 client.player = audioPlayer;
                         }
-                        const { channelId } = memberClient?.voice;
-                        const connection = joinVoiceChannel({
-                                channelId: channelId!,
+                        connection = joinVoiceChannel({
+                                channelId,
                                 guildId: interaction.guildId!,
-                                adapterCreator: interaction.guild?.voiceAdapterCreator!
-                        });
+                                adapterCreator: guild?.voiceAdapterCreator!
+                        })
 
                         if (isYtPlaylist) {
                                 const playlist = await play.playlist_info(url, { incomplete: true });
@@ -233,6 +230,7 @@ module.exports = {
                                         await interaction.editReply("Error finding song, try again")
                                         return;
                                 }
+                                // rebuild queue
                                 const queueNumber = Array.from(client.queue.keys()).length
                                 position = position ? position - 1 : queueNumber
                                 const values = [];
@@ -260,8 +258,6 @@ module.exports = {
                                                 let value = client.queue.get(key);
                                                 values.push([`${i + 1}:${key.split(":")[1]}`, value]);
                                         }
-                                }
-                                if (position < queueNumber && 0 < position) {
                                         const newQ = new Collection();
                                         values.map((value) => {
                                                 newQ.set(value[0], value[1])
@@ -275,7 +271,7 @@ module.exports = {
 
                                 const key = client.queue.keyAt(0);
                                 const currentResource = client.queue.get(key);
-                                // TODO
+                                // try to play new resource immediately if current resource is not started yet
                                 if (currentResource.resource.started === true) {
                                         return;
                                 }
@@ -284,7 +280,12 @@ module.exports = {
                                 const subscription = connection.subscribe(audioPlayer)
                         }
                 } else {
-                        interaction.editReply("ok")
+                        connection = joinVoiceChannel({
+                                channelId,
+                                guildId: interaction.guildId!,
+                                adapterCreator: guild?.voiceAdapterCreator!
+                        })
+                        await interaction.editReply("ok")
                         client.queue = new Collection();
                         client.player = audioPlayer;
                         const resource = await fetchSong(url);
@@ -362,9 +363,7 @@ module.exports = {
 
                         interaction.channel?.send("Disconnected after 3 minutes of activity")
                 }
-
                 const debounceDisconnect = debounce(() => disconnect())
-
                 debounceDisconnect();
         }
 }

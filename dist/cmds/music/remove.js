@@ -18,15 +18,24 @@ const cmd = new discord_js_1.SlashCommandBuilder()
 module.exports = {
     data: cmd,
     execute(interaction) {
+        var _a, _b;
         return __awaiter(this, void 0, void 0, function* () {
             const { client } = interaction;
             const number = interaction.options.getNumber("position", true) - 1;
             const keys = Array.from(client.queue.keys());
+            if (number < 0) {
+                yield ((_a = interaction.channel) === null || _a === void 0 ? void 0 : _a.send("Invalid number"));
+                return;
+            }
+            else if (number > keys.length) {
+                yield ((_b = interaction.channel) === null || _b === void 0 ? void 0 : _b.send("Invalid number"));
+                return;
+            }
             const key = keys.find((key) => parseInt(key.toString().split(":")[0]) === number);
             const resource = client.queue.get(key);
             client.queue.delete(key);
             const embed = new builders_1.EmbedBuilder()
-                .setTitle(`Deleted track ${number + 1}: ${resource.title}`)
+                .setTitle(`Deleted track ${number + 2}: ${resource.title}`)
                 .setColor(discord_js_1.Colors.Red)
                 .setTimestamp(Date.now())
                 .setFooter({
