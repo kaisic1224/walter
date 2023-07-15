@@ -18,4 +18,4 @@ COPY . .
 
 EXPOSE 8080
 
-CMD [ "node", "dist/app.js" ]
+CMD [ "npm", "start" ]
