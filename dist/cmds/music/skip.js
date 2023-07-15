@@ -26,6 +26,7 @@ module.exports = {
             }
             const key = client.queue.keyAt(0);
             const currentResource = client.queue.get(key);
+            client.queue.delete(key);
             if (Array.from(client.queue.keys()).length === 0) {
                 yield interaction.reply("Cannot skip when nothing is playing");
                 return;

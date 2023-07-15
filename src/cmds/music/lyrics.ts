@@ -7,5 +7,6 @@ const cmd = new SlashCommandBuilder()
 module.exports = {
         data: cmd,
         async execute(interaction: ChatInputCommandInteraction) {
+                await interaction.reply("frick u nathan im working on it")
         }
 }

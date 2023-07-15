@@ -17,6 +17,7 @@ module.exports = {
     data: cmd,
     execute(interaction) {
         return __awaiter(this, void 0, void 0, function* () {
+            yield interaction.reply("frick u nathan im working on it");
         });
     }
 };

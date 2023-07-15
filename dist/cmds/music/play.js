@@ -37,7 +37,7 @@ const cmd = new discord_js_1.SlashCommandBuilder()
 module.exports = {
     data: cmd,
     execute(interaction) {
-        var _a, _b, _c, _d;
+        var _a, _b;
         return __awaiter(this, void 0, void 0, function* () {
             const { user, guild, client } = interaction;
             const member = guild === null || guild === void 0 ? void 0 : guild.members.cache.get(user.id);
@@ -55,9 +55,10 @@ module.exports = {
             const isYtPlaylist = url.slice(12, 32) === "youtube.com/playlist";
             const isSpotify = url.slice(8, 20) === "open.spotify" && play_dl_1.default.sp_validate(url);
             const fetchSong = (song) => __awaiter(this, void 0, void 0, function* () {
-                var _e, _f, _g;
+                var _c, _d, _e;
                 let search;
                 let param;
+                // is link (not search query) and is not a spotify link
                 if (isLink && !isSpotify) {
                     if (!play_dl_1.default.yt_validate) {
                         yield interaction.editReply("Not a valid link");
@@ -65,14 +66,15 @@ module.exports = {
                     }
                     const link = new URL(song);
                     const searchParams = new URLSearchParams(link.search);
+                    // get video id
                     param = searchParams.get('v') || url.split('.be/')[1];
                 }
                 search = yield play_dl_1.default.search(song, { source: { youtube: 'video' }, limit: 1 });
                 url = search[0].url;
                 title = search[0].title || "packgod stole your hair";
-                ytChannelName = ((_e = search[0].channel) === null || _e === void 0 ? void 0 : _e.name) || "alinity mom";
-                ytChannelAvatar = ((_f = search[0].channel) === null || _f === void 0 ? void 0 : _f.iconURL()) || nathanFace;
-                ytChannelLink = ((_g = search[0].channel) === null || _g === void 0 ? void 0 : _g.url) || "https://youtu.be/X-CC7rfO2us";
+                ytChannelName = ((_c = search[0].channel) === null || _c === void 0 ? void 0 : _c.name) || "alinity mom";
+                ytChannelAvatar = ((_d = search[0].channel) === null || _d === void 0 ? void 0 : _d.iconURL()) || nathanFace;
+                ytChannelLink = ((_e = search[0].channel) === null || _e === void 0 ? void 0 : _e.url) || "https://youtu.be/X-CC7rfO2us";
                 thumbnail = search[0].thumbnails[0].url;
                 duration = search[0].durationRaw;
                 //spare my storage
@@ -113,24 +115,19 @@ module.exports = {
                     noSubscriber: voice_1.NoSubscriberBehavior.Play
                 }
             });
-            const connection = (0, voice_1.joinVoiceChannel)({
-                channelId,
-                guildId: interaction.guildId,
-                adapterCreator: (_b = interaction.guild) === null || _b === void 0 ? void 0 : _b.voiceAdapterCreator
-            });
-            const memberClient = guild === null || guild === void 0 ? void 0 : guild.members.cache.get(client.user.id);
             // if someone plays command while bot is already in channel
+            let connection;
+            const memberClient = guild === null || guild === void 0 ? void 0 : guild.members.cache.get(client.user.id);
             if (memberClient === null || memberClient === void 0 ? void 0 : memberClient.voice.channel) {
                 yield interaction.editReply("ok");
                 if (!client.queue) {
                     client.queue = new discord_js_1.Collection();
                     client.player = audioPlayer;
                 }
-                const { channelId } = memberClient === null || memberClient === void 0 ? void 0 : memberClient.voice;
-                const connection = (0, voice_1.joinVoiceChannel)({
-                    channelId: channelId,
+                connection = (0, voice_1.joinVoiceChannel)({
+                    channelId,
                     guildId: interaction.guildId,
-                    adapterCreator: (_c = interaction.guild) === null || _c === void 0 ? void 0 : _c.voiceAdapterCreator
+                    adapterCreator: guild === null || guild === void 0 ? void 0 : guild.voiceAdapterCreator
                 });
                 if (isYtPlaylist) {
                     const playlist = yield play_dl_1.default.playlist_info(url, { incomplete: true });
@@ -170,7 +167,7 @@ module.exports = {
                         });
                         const tracks = yield search[0].all_tracks();
                         tracks.map((track, index) => __awaiter(this, void 0, void 0, function* () {
-                            var _h;
+                            var _f;
                             const qs = yield play_dl_1.default.search(`${track.name}`, { limit: 1, source: { youtube: 'video' } });
                             const stream = yield play_dl_1.default.stream(qs[0].url);
                             const resource = (0, voice_1.createAudioResource)(stream.stream, { inputType: stream.type });
@@ -182,7 +179,7 @@ module.exports = {
                                 ytChannelName: track.artists.map((artist) => artist.name).join(" • "),
                                 ytChannelAvatar: nathanFace,
                                 ytChannelLink: track.artists[0].url,
-                                thumbnail: (_h = track.thumbnail) === null || _h === void 0 ? void 0 : _h.url,
+                                thumbnail: (_f = track.thumbnail) === null || _f === void 0 ? void 0 : _f.url,
                                 duration,
                                 requestee: user
                             });
@@ -205,7 +202,7 @@ module.exports = {
                             ytChannelName: search[0].artists.map((artist) => artist.name).join(" • "),
                             ytChannelAvatar: nathanFace,
                             ytChannelLink: search[0].artists[0].url,
-                            thumbnail: (_d = search[0].thumbnail) === null || _d === void 0 ? void 0 : _d.url,
+                            thumbnail: (_b = search[0].thumbnail) === null || _b === void 0 ? void 0 : _b.url,
                             duration,
                             requestee: user
                         });
@@ -218,7 +215,7 @@ module.exports = {
                         });
                         const tracks = yield search[0].all_tracks();
                         tracks.map((track, index) => __awaiter(this, void 0, void 0, function* () {
-                            var _j;
+                            var _g;
                             const qs = yield play_dl_1.default.search(`${track.name}`, { limit: 1, source: { youtube: 'video' } });
                             const stream = yield play_dl_1.default.stream(qs[0].url);
                             const resource = (0, voice_1.createAudioResource)(stream.stream, { inputType: stream.type });
@@ -230,7 +227,7 @@ module.exports = {
                                 ytChannelName: track.artists.map((artist) => artist.name).join(" • "),
                                 ytChannelAvatar: nathanFace,
                                 ytChannelLink: track.artists[0].url,
-                                thumbnail: (_j = track.thumbnail) === null || _j === void 0 ? void 0 : _j.url,
+                                thumbnail: (_g = track.thumbnail) === null || _g === void 0 ? void 0 : _g.url,
                                 duration,
                                 requestee: user
                             });
@@ -243,6 +240,7 @@ module.exports = {
                         yield interaction.editReply("Error finding song, try again");
                         return;
                     }
+                    // rebuild queue
                     const queueNumber = Array.from(client.queue.keys()).length;
                     position = position ? position - 1 : queueNumber;
                     const values = [];
@@ -270,8 +268,6 @@ module.exports = {
                             let value = client.queue.get(key);
                             values.push([`${i + 1}:${key.split(":")[1]}`, value]);
                         }
-                    }
-                    if (position < queueNumber && 0 < position) {
                         const newQ = new discord_js_1.Collection();
                         values.map((value) => {
                             newQ.set(value[0], value[1]);
@@ -285,7 +281,7 @@ module.exports = {
                     }
                     const key = client.queue.keyAt(0);
                     const currentResource = client.queue.get(key);
-                    // TODO
+                    // try to play new resource immediately if current resource is not started yet
                     if (currentResource.resource.started === true) {
                         return;
                     }
@@ -294,7 +290,12 @@ module.exports = {
                 }
             }
             else {
-                interaction.editReply("ok");
+                connection = (0, voice_1.joinVoiceChannel)({
+                    channelId,
+                    guildId: interaction.guildId,
+                    adapterCreator: guild === null || guild === void 0 ? void 0 : guild.voiceAdapterCreator
+                });
+                yield interaction.editReply("ok");
                 client.queue = new discord_js_1.Collection();
                 client.player = audioPlayer;
                 const resource = yield fetchSong(url);
@@ -332,7 +333,7 @@ module.exports = {
                 const subscription = connection.subscribe(audioPlayer);
             }));
             audioPlayer.on(voice_1.AudioPlayerStatus.Playing, () => __awaiter(this, void 0, void 0, function* () {
-                var _k;
+                var _h;
                 const key = client.queue.keyAt(0);
                 const resource = client.queue.get(key);
                 const reply = new builders_1.EmbedBuilder()
@@ -351,7 +352,7 @@ module.exports = {
                     .setTimestamp(Date.now())
                     .setImage(resource.thumbnail)
                     .setColor(discord_js_1.Colors.Blurple);
-                (_k = interaction.channel) === null || _k === void 0 ? void 0 : _k.send({ embeds: [reply] });
+                (_h = interaction.channel) === null || _h === void 0 ? void 0 : _h.send({ embeds: [reply] });
             }));
             audioPlayer.on("error", (error) => __awaiter(this, void 0, void 0, function* () {
                 yield interaction.editReply(`Something went wrong! ${error.message} with track: ${error.resource.metadata.title}`);

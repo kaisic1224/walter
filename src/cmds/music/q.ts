@@ -1,5 +1,5 @@
 import { EmbedBuilder } from "@discordjs/builders";
-import { ChatInputCommandInteraction, Collection, Colors, EmbedField, SlashCommandBuilder } from "discord.js";
+import { ChatInputCommandInteraction, Colors, EmbedField, SlashCommandBuilder } from "discord.js";
 
 const cmd = new SlashCommandBuilder()
         .setName("q")
