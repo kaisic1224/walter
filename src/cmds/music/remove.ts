@@ -20,7 +20,7 @@ module.exports = {
                 client.queue.delete(key);
 
                 const embed = new EmbedBuilder()
-                        .setTitle(`Deleted track ${number}: ${resource.title}`)
+                        .setTitle(`Deleted track ${number + 1}: ${resource.title}`)
                         .setColor(Colors.Red)
                         .setTimestamp(Date.now())
                         .setFooter({

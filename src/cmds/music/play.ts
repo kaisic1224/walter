@@ -4,6 +4,18 @@ import { createReadStream, createWriteStream } from "fs";
 import play, { SpotifyAlbum, SpotifyPlaylist, SpotifyTrack, spotify } from 'play-dl'
 import { EmbedBuilder } from "@discordjs/builders";
 
+function debounce(f: Function, timeout = (1000 * 60 * 3)) {
+        let timer: NodeJS.Timer | undefined;
+        return (...args: any) => {
+                if (!timer) {
+                        f.apply(this, args);
+                }
+                clearTimeout(timer);
+                timer = setTimeout(() => {
+                        timer = undefined
+                }, timeout);
+        }
+}
 
 const nathanFace = "https://wompampsupport.azureedge.net/fetchimage?siteId=7575&v=2&jpgQuality=100&width=700&url=https%3A%2F%2Fi.kym-cdn.com%2Fphotos%2Fimages%2Fnewsfeed%2F002%2F322%2F154%2F667.jpg"
 const cmd = new SlashCommandBuilder()
@@ -344,6 +356,15 @@ module.exports = {
                         await interaction.editReply(`Something went wrong! ${error.message} with track: ${(error.resource.metadata as any).title}`)
 
                 })
+                function disconnect() {
+                        connection.destroy();
+                        connection.disconnect();
 
+                        interaction.channel?.send("Disconnected after 3 minutes of activity")
+                }
+
+                const debounceDisconnect = debounce(() => disconnect())
+
+                debounceDisconnect();
         }
 }

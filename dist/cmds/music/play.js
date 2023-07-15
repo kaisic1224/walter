@@ -16,6 +16,18 @@ const discord_js_1 = require("discord.js");
 const voice_1 = require("@discordjs/voice");
 const play_dl_1 = __importDefault(require("play-dl"));
 const builders_1 = require("@discordjs/builders");
+function debounce(f, timeout = (1000 * 60 * 3)) {
+    let timer;
+    return (...args) => {
+        if (!timer) {
+            f.apply(this, args);
+        }
+        clearTimeout(timer);
+        timer = setTimeout(() => {
+            timer = undefined;
+        }, timeout);
+    };
+}
 const nathanFace = "https://wompampsupport.azureedge.net/fetchimage?siteId=7575&v=2&jpgQuality=100&width=700&url=https%3A%2F%2Fi.kym-cdn.com%2Fphotos%2Fimages%2Fnewsfeed%2F002%2F322%2F154%2F667.jpg";
 const cmd = new discord_js_1.SlashCommandBuilder()
     .setName("play")
@@ -344,6 +356,14 @@ module.exports = {
             audioPlayer.on("error", (error) => __awaiter(this, void 0, void 0, function* () {
                 yield interaction.editReply(`Something went wrong! ${error.message} with track: ${error.resource.metadata.title}`);
             }));
+            function disconnect() {
+                var _a;
+                connection.destroy();
+                connection.disconnect();
+                (_a = interaction.channel) === null || _a === void 0 ? void 0 : _a.send("Disconnected after 3 minutes of activity");
+            }
+            const debounceDisconnect = debounce(() => disconnect());
+            debounceDisconnect();
         });
     }
 };
