@@ -108,7 +108,7 @@ module.exports = {
             const queueEmbed = new builders_1.EmbedBuilder()
                 .setTitle(`Enqued track: ${url}`)
                 .setColor(discord_js_1.Colors.DarkOrange);
-            (_a = interaction.channel) === null || _a === void 0 ? void 0 : _a.send({ embeds: [queueEmbed] });
+            yield ((_a = interaction.channel) === null || _a === void 0 ? void 0 : _a.send({ embeds: [queueEmbed] }));
             yield interaction.deferReply();
             if (!client.player) {
                 client.player = (0, voice_1.createAudioPlayer)({
@@ -328,12 +328,14 @@ module.exports = {
                     // check if current resource is finished playing
                     function disconnect() {
                         var _a, _b;
-                        connection.destroy();
-                        client.queue.clear();
-                        (_a = client.subscription) === null || _a === void 0 ? void 0 : _a.unsubscribe();
-                        (_b = interaction.channel) === null || _b === void 0 ? void 0 : _b.send("Disconnected after 3 minutes of activity");
+                        return __awaiter(this, void 0, void 0, function* () {
+                            connection.destroy();
+                            client.queue.clear();
+                            (_a = client.subscription) === null || _a === void 0 ? void 0 : _a.unsubscribe();
+                            yield ((_b = interaction.channel) === null || _b === void 0 ? void 0 : _b.send("Disconnected after 3 minutes of activity"));
+                        });
                     }
-                    setTimeout(() => disconnect(), 5 * 60 * 1000);
+                    setTimeout(() => disconnect(), (5 * 60 * 1000));
                     return;
                 }
                 const nextResource = client.queue.get(nextKey);
@@ -362,7 +364,7 @@ module.exports = {
                     .setTimestamp(Date.now())
                     .setImage(resource.thumbnail)
                     .setColor(discord_js_1.Colors.Blurple);
-                (_h = interaction.channel) === null || _h === void 0 ? void 0 : _h.send({ embeds: [reply] });
+                yield ((_h = interaction.channel) === null || _h === void 0 ? void 0 : _h.send({ embeds: [reply] }));
             }));
             client.player.on("error", (error) => __awaiter(this, void 0, void 0, function* () {
                 yield interaction.editReply(`Something went wrong! ${error.message} with track: ${error.resource.metadata.title}`);

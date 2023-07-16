@@ -99,7 +99,7 @@ module.exports = {
                 const queueEmbed = new EmbedBuilder()
                         .setTitle(`Enqued track: ${url}`)
                         .setColor(Colors.DarkOrange)
-                interaction.channel?.send({ embeds: [queueEmbed] })
+                await interaction.channel?.send({ embeds: [queueEmbed] })
                 await interaction.deferReply()
                 if (!client.player) {
                         client.player = createAudioPlayer({
@@ -323,14 +323,14 @@ module.exports = {
                         if (!nextKey) {
                                 // do nothing, be on standby
                                 // check if current resource is finished playing
-                                function disconnect() {
+                                async function disconnect() {
                                         connection.destroy();
                                         client.queue.clear();
                                         client.subscription?.unsubscribe();
 
-                                        interaction.channel?.send("Disconnected after 3 minutes of activity")
+                                        await interaction.channel?.send("Disconnected after 3 minutes of activity")
                                 }
-                                setTimeout(() => disconnect(), 5 * 60 * 1000)
+                                setTimeout(() => disconnect(), (5 * 60 * 1000))
                                 return;
                         }
                         const nextResource = client.queue.get(nextKey);
@@ -362,7 +362,7 @@ module.exports = {
                                 .setTimestamp(Date.now())
                                 .setImage(resource.thumbnail)
                                 .setColor(Colors.Blurple)
-                        interaction.channel?.send({ embeds: [reply] })
+                        await interaction.channel?.send({ embeds: [reply] })
                 });
 
                 client.player.on("error", async (error) => {
