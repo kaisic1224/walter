@@ -83,13 +83,13 @@ module.exports = {
                     //check minutes because hours will be in the minutes section place
                     if (hours >= 10) {
                         yield interaction.editReply("dont send a video over 10 minutes");
-                        return;
+                        return null;
                     }
                 }
                 else {
                     //that means duration has hour has a number, erdaciate their suggestion
                     yield interaction.editReply("dont sending a video over an hour");
-                    return;
+                    return null;
                 }
                 let stream = yield play_dl_1.default.stream(url);
                 const resource = (0, voice_1.createAudioResource)(stream.stream, { inputType: stream.type });
@@ -329,13 +329,11 @@ module.exports = {
                     function disconnect() {
                         var _a, _b;
                         connection.destroy();
-                        connection.disconnect();
                         client.queue.clear();
                         (_a = client.subscription) === null || _a === void 0 ? void 0 : _a.unsubscribe();
                         (_b = interaction.channel) === null || _b === void 0 ? void 0 : _b.send("Disconnected after 3 minutes of activity");
                     }
-                    const debounceDisconnect = debounce(() => disconnect());
-                    debounceDisconnect();
+                    setTimeout(() => disconnect(), 5 * 60 * 1000);
                     return;
                 }
                 const nextResource = client.queue.get(nextKey);
