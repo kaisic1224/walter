@@ -317,54 +317,58 @@ module.exports = {
                 client.player.play(nextResource.resource);
                 client.subscription = connection.subscribe(client.player);
             }
-            client.player.on(voice_1.AudioPlayerStatus.Idle, () => __awaiter(this, void 0, void 0, function* () {
-                const key = client.queue.keyAt(0);
-                const nextKey = client.queue.keyAt(1);
-                client.queue.delete(key);
-                if (!nextKey) {
-                    // do nothing, be on standby
-                    // check if current resource is finished playing
-                    function disconnect() {
-                        var _a, _b, _c;
-                        return __awaiter(this, void 0, void 0, function* () {
-                            (_a = client.subscription) === null || _a === void 0 ? void 0 : _a.connection.destroy();
-                            client.queue.clear();
-                            (_b = client.subscription) === null || _b === void 0 ? void 0 : _b.unsubscribe();
-                            client.player.stop();
-                            yield ((_c = interaction.channel) === null || _c === void 0 ? void 0 : _c.send("Disconnected after 2 minutes of activity"));
-                        });
+            if (client.player.listenerCount(voice_1.AudioPlayerStatus.Idle) === 0) {
+                client.player.on(voice_1.AudioPlayerStatus.Idle, () => __awaiter(this, void 0, void 0, function* () {
+                    const key = client.queue.keyAt(0);
+                    const nextKey = client.queue.keyAt(1);
+                    client.queue.delete(key);
+                    if (!nextKey) {
+                        // do nothing, be on standby
+                        // check if current resource is finished playing
+                        function disconnect() {
+                            var _a, _b, _c;
+                            return __awaiter(this, void 0, void 0, function* () {
+                                (_a = client.subscription) === null || _a === void 0 ? void 0 : _a.connection.destroy();
+                                client.queue.clear();
+                                (_b = client.subscription) === null || _b === void 0 ? void 0 : _b.unsubscribe();
+                                client.player.stop();
+                                yield ((_c = interaction.channel) === null || _c === void 0 ? void 0 : _c.send("Disconnected after 2 minutes of activity"));
+                            });
+                        }
+                        setTimeout(() => disconnect(), (2 * 60 * 1000));
+                        return;
                     }
-                    setTimeout(() => disconnect(), (2 * 60 * 1000));
-                    return;
-                }
-                const nextResource = client.queue.get(nextKey);
-                client.player.play(nextResource.resource);
-                if (!client.subscription) {
-                    client.subscription = connection.subscribe(client.player);
-                }
-            }));
-            client.player.on(voice_1.AudioPlayerStatus.Playing, () => __awaiter(this, void 0, void 0, function* () {
-                var _j;
-                const key = client.queue.keyAt(0);
-                const resource = client.queue.get(key);
-                const reply = new builders_1.EmbedBuilder()
-                    .setTitle(resource.title)
-                    .setURL(resource.url)
-                    .setDescription('`[0:00 / ' + resource.duration + ']`')
-                    .setAuthor({
-                    iconURL: resource.ytChannelAvatar,
-                    name: resource.ytChannelName,
-                    url: resource.ytChannelLink
-                })
-                    .setFooter({
-                    iconURL: resource.requestee.displayAvatarURL() || resource.requestee.defaultAvatarURL,
-                    text: `Requested by: ${resource.requestee.username}`
-                })
-                    .setTimestamp(Date.now())
-                    .setImage(resource.thumbnail)
-                    .setColor(discord_js_1.Colors.Blurple);
-                yield ((_j = interaction.channel) === null || _j === void 0 ? void 0 : _j.send({ embeds: [reply] }));
-            }));
+                    const nextResource = client.queue.get(nextKey);
+                    client.player.play(nextResource.resource);
+                    if (!client.subscription) {
+                        client.subscription = connection.subscribe(client.player);
+                    }
+                }));
+            }
+            if (client.player.listenerCount(voice_1.AudioPlayerStatus.Playing) === 0) {
+                client.player.on(voice_1.AudioPlayerStatus.Playing, () => __awaiter(this, void 0, void 0, function* () {
+                    var _j;
+                    const key = client.queue.keyAt(0);
+                    const resource = client.queue.get(key);
+                    const reply = new builders_1.EmbedBuilder()
+                        .setTitle(resource.title)
+                        .setURL(resource.url)
+                        .setDescription('`[0:00 / ' + resource.duration + ']`')
+                        .setAuthor({
+                        iconURL: resource.ytChannelAvatar,
+                        name: resource.ytChannelName,
+                        url: resource.ytChannelLink
+                    })
+                        .setFooter({
+                        iconURL: resource.requestee.displayAvatarURL() || resource.requestee.defaultAvatarURL,
+                        text: `Requested by: ${resource.requestee.username}`
+                    })
+                        .setTimestamp(Date.now())
+                        .setImage(resource.thumbnail)
+                        .setColor(discord_js_1.Colors.Blurple);
+                    yield ((_j = interaction.channel) === null || _j === void 0 ? void 0 : _j.send({ embeds: [reply] }));
+                }));
+            }
         });
     }
 };
