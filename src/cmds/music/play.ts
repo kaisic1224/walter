@@ -71,12 +71,12 @@ module.exports = {
                                 //check minutes because hours will be in the minutes section place
                                 if (hours >= 10) {
                                         await interaction.editReply("dont send a video over 10 minutes")
-                                        return;
+                                        return null;
                                 }
                         } else {
                                 //that means duration has hour has a number, erdaciate their suggestion
                                 await interaction.editReply("dont sending a video over an hour")
-                                return;
+                                return null;
                         }
 
                         let stream = await play.stream(url)
@@ -88,11 +88,11 @@ module.exports = {
                 // if user is not in channel
                 if (!channelId) {
                         await interaction.reply(`${user.username} please join a channel first`);
-                        return
+                        return;
                 } else if (!(channel as VoiceChannel)?.joinable) {
                         // if bot cannot join user's channel
                         await interaction.reply(`Cannot join #${channel?.name} because it does not have permission`)
-                        return
+                        return;
                 }
 
 
@@ -325,14 +325,12 @@ module.exports = {
                                 // check if current resource is finished playing
                                 function disconnect() {
                                         connection.destroy();
-                                        connection.disconnect();
                                         client.queue.clear();
                                         client.subscription?.unsubscribe();
 
                                         interaction.channel?.send("Disconnected after 3 minutes of activity")
                                 }
-                                const debounceDisconnect = debounce(() => disconnect())
-                                debounceDisconnect();
+                                setTimeout(() => disconnect(), 5 * 60 * 1000)
                                 return;
                         }
                         const nextResource = client.queue.get(nextKey);
