@@ -12,17 +12,15 @@ module.exports = {
 
                 client.player.stop(true);
 
-                if (!client.queue) {
+                if (!client.queue || Array.from(client.queue.keys()).length === 0) {
                         await interaction.reply("Cannot skip when nothing is playing")
                         return;
                 }
+
                 const key = client.queue.keyAt(0);
                 const currentResource = client.queue.get(key);
                 client.queue.delete(key);
-                if (Array.from(client.queue.keys()).length === 0) {
-                        await interaction.reply("Cannot skip when nothing is playing")
-                        return;
-                }
+
 
                 const embed = new EmbedBuilder()
                         .setTitle(`Skipped current track: ${currentResource.title}`)

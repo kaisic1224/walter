@@ -1,20 +1,7 @@
 import { ChatInputCommandInteraction, Collection, Colors, SlashCommandBuilder, VoiceChannel } from "discord.js";
-import { AudioPlayerStatus, NoSubscriberBehavior, VoiceConnection, createAudioPlayer, createAudioResource, joinVoiceChannel } from "@discordjs/voice";
+import { AudioPlayerStatus, NoSubscriberBehavior, VoiceConnection, createAudioPlayer, createAudioResource, getVoiceConnection, joinVoiceChannel } from "@discordjs/voice";
 import play, { SpotifyAlbum, SpotifyPlaylist, SpotifyTrack } from 'play-dl'
 import { EmbedBuilder } from "@discordjs/builders";
-
-function debounce(f: Function, timeout = (1000 * 60 * 3)) {
-        let timer: NodeJS.Timer | undefined;
-        return (...args: any) => {
-                if (!timer) {
-                        f.apply(this, args);
-                }
-                clearTimeout(timer);
-                timer = setTimeout(() => {
-                        timer = undefined
-                }, timeout);
-        }
-}
 
 const nathanFace = "https://wompampsupport.azureedge.net/fetchimage?siteId=7575&v=2&jpgQuality=100&width=700&url=https%3A%2F%2Fi.kym-cdn.com%2Fphotos%2Fimages%2Fnewsfeed%2F002%2F322%2F154%2F667.jpg"
 const cmd = new SlashCommandBuilder()
@@ -111,24 +98,31 @@ module.exports = {
 
 
                 // if someone plays command while bot is already in channel
-                let connection: VoiceConnection;
                 const memberClient = guild?.members.cache.get(client.user.id)
+                let connection = getVoiceConnection(memberClient!.voice.guild.id)
                 if (memberClient?.voice.channel) {
                         await interaction.editReply("ok")
                         if (!client.queue) {
                                 client.queue = new Collection();
                         }
-                        connection = joinVoiceChannel({
-                                channelId,
-                                guildId: interaction.guildId!,
-                                adapterCreator: guild?.voiceAdapterCreator!
-                        })
+                        if (!connection) {
+                                const memberChannelId = member.voice.channelId;
+                                connection = joinVoiceChannel({
+                                        channelId: memberChannelId!,
+                                        guildId: interaction.guildId!,
+                                        adapterCreator: guild?.voiceAdapterCreator!
+                                })
+                        }
 
                         if (isYtPlaylist) {
                                 const playlist = await play.playlist_info(url, { incomplete: true });
                                 const videos = await playlist.all_videos();
                                 videos.map(async (video, index) => {
                                         const resource = await fetchSong(video.url)
+                                        if (resource === null) {
+                                                await interaction.channel?.send("the resource was over the time limit!")
+                                                return;
+                                        }
                                         client.queue.set(`${index}:${video.url}`, {
                                                 resource,
                                                 url,
@@ -228,7 +222,7 @@ module.exports = {
                         } else {
                                 const resource = await fetchSong(url);
                                 if (resource === null) {
-                                        await interaction.editReply("Error finding song, try again")
+                                        await interaction.editReply("Error finding song, try again, or resource was over time limit")
                                         return;
                                 }
                                 // rebuild queue
@@ -279,7 +273,9 @@ module.exports = {
                         }
 
                         client.player.play(currentResource.resource);
-                        client.subscription = connection.subscribe(client.player)
+                        if (!client.subscription) {
+                                client.subscription = connection.subscribe(client.player)
+                        }
 
                 } else {
                         connection = joinVoiceChannel({
@@ -291,7 +287,7 @@ module.exports = {
                         client.queue = new Collection();
                         const resource = await fetchSong(url);
                         if (resource === null) {
-                                await interaction.editReply("Error finding song, try again")
+                                await interaction.editReply("Error finding song, try again, or resource was over time limit")
                                 return;
                         }
                         client.queue.set(`0:${url}`, {
@@ -316,7 +312,7 @@ module.exports = {
 
 
 
-                client.player.on(AudioPlayerStatus.Idle, async () => {
+                client.player.once(AudioPlayerStatus.Idle, async () => {
                         const key = client.queue.keyAt(0);
                         const nextKey = client.queue.keyAt(1);
                         client.queue.delete(key)
@@ -324,26 +320,27 @@ module.exports = {
                                 // do nothing, be on standby
                                 // check if current resource is finished playing
                                 async function disconnect() {
-                                        connection.destroy();
+                                        client.subscription?.connection.destroy();
                                         client.queue.clear();
                                         client.subscription?.unsubscribe();
+                                        client.player.stop();
 
-                                        await interaction.channel?.send("Disconnected after 3 minutes of activity")
+                                        await interaction.channel?.send("Disconnected after 2 minutes of activity")
                                 }
-                                setTimeout(() => disconnect(), (5 * 60 * 1000))
+                                setTimeout(() => disconnect(), (2 * 60 * 1000))
                                 return;
                         }
                         const nextResource = client.queue.get(nextKey);
                         client.player.play(nextResource.resource);
 
                         if (!client.subscription) {
-                                client.subscription = connection.subscribe(client.player);
+                                client.subscription = connection!.subscribe(client.player);
                         }
 
                 });
 
 
-                client.player.on(AudioPlayerStatus.Playing, async () => {
+                client.player.once(AudioPlayerStatus.Playing, async () => {
                         const key = client.queue.keyAt(0);
                         const resource = client.queue.get(key)
                         const reply = new EmbedBuilder()
@@ -364,11 +361,6 @@ module.exports = {
                                 .setColor(Colors.Blurple)
                         await interaction.channel?.send({ embeds: [reply] })
                 });
-
-                client.player.on("error", async (error) => {
-                        await interaction.editReply(`Something went wrong! ${error.message} with track: ${(error.resource.metadata as any).title}`)
-
-                })
 
         }
 }

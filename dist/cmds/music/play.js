@@ -16,18 +16,6 @@ const discord_js_1 = require("discord.js");
 const voice_1 = require("@discordjs/voice");
 const play_dl_1 = __importDefault(require("play-dl"));
 const builders_1 = require("@discordjs/builders");
-function debounce(f, timeout = (1000 * 60 * 3)) {
-    let timer;
-    return (...args) => {
-        if (!timer) {
-            f.apply(this, args);
-        }
-        clearTimeout(timer);
-        timer = setTimeout(() => {
-            timer = undefined;
-        }, timeout);
-    };
-}
 const nathanFace = "https://wompampsupport.azureedge.net/fetchimage?siteId=7575&v=2&jpgQuality=100&width=700&url=https%3A%2F%2Fi.kym-cdn.com%2Fphotos%2Fimages%2Fnewsfeed%2F002%2F322%2F154%2F667.jpg";
 const cmd = new discord_js_1.SlashCommandBuilder()
     .setName("play")
@@ -118,23 +106,31 @@ module.exports = {
                 });
             }
             // if someone plays command while bot is already in channel
-            let connection;
             const memberClient = guild === null || guild === void 0 ? void 0 : guild.members.cache.get(client.user.id);
+            let connection = (0, voice_1.getVoiceConnection)(memberClient.voice.guild.id);
             if (memberClient === null || memberClient === void 0 ? void 0 : memberClient.voice.channel) {
                 yield interaction.editReply("ok");
                 if (!client.queue) {
                     client.queue = new discord_js_1.Collection();
                 }
-                connection = (0, voice_1.joinVoiceChannel)({
-                    channelId,
-                    guildId: interaction.guildId,
-                    adapterCreator: guild === null || guild === void 0 ? void 0 : guild.voiceAdapterCreator
-                });
+                if (!connection) {
+                    const memberChannelId = member.voice.channelId;
+                    connection = (0, voice_1.joinVoiceChannel)({
+                        channelId: memberChannelId,
+                        guildId: interaction.guildId,
+                        adapterCreator: guild === null || guild === void 0 ? void 0 : guild.voiceAdapterCreator
+                    });
+                }
                 if (isYtPlaylist) {
                     const playlist = yield play_dl_1.default.playlist_info(url, { incomplete: true });
                     const videos = yield playlist.all_videos();
                     videos.map((video, index) => __awaiter(this, void 0, void 0, function* () {
+                        var _f;
                         const resource = yield fetchSong(video.url);
+                        if (resource === null) {
+                            yield ((_f = interaction.channel) === null || _f === void 0 ? void 0 : _f.send("the resource was over the time limit!"));
+                            return;
+                        }
                         client.queue.set(`${index}:${video.url}`, {
                             resource,
                             url,
@@ -168,7 +164,7 @@ module.exports = {
                         });
                         const tracks = yield search[0].all_tracks();
                         tracks.map((track, index) => __awaiter(this, void 0, void 0, function* () {
-                            var _f;
+                            var _g;
                             const qs = yield play_dl_1.default.search(`${track.name}`, { limit: 1, source: { youtube: 'video' } });
                             const stream = yield play_dl_1.default.stream(qs[0].url);
                             const resource = (0, voice_1.createAudioResource)(stream.stream, { inputType: stream.type });
@@ -180,7 +176,7 @@ module.exports = {
                                 ytChannelName: track.artists.map((artist) => artist.name).join(" • "),
                                 ytChannelAvatar: nathanFace,
                                 ytChannelLink: track.artists[0].url,
-                                thumbnail: (_f = track.thumbnail) === null || _f === void 0 ? void 0 : _f.url,
+                                thumbnail: (_g = track.thumbnail) === null || _g === void 0 ? void 0 : _g.url,
                                 duration,
                                 requestee: user
                             });
@@ -216,7 +212,7 @@ module.exports = {
                         });
                         const tracks = yield search[0].all_tracks();
                         tracks.map((track, index) => __awaiter(this, void 0, void 0, function* () {
-                            var _g;
+                            var _h;
                             const qs = yield play_dl_1.default.search(`${track.name}`, { limit: 1, source: { youtube: 'video' } });
                             const stream = yield play_dl_1.default.stream(qs[0].url);
                             const resource = (0, voice_1.createAudioResource)(stream.stream, { inputType: stream.type });
@@ -228,7 +224,7 @@ module.exports = {
                                 ytChannelName: track.artists.map((artist) => artist.name).join(" • "),
                                 ytChannelAvatar: nathanFace,
                                 ytChannelLink: track.artists[0].url,
-                                thumbnail: (_g = track.thumbnail) === null || _g === void 0 ? void 0 : _g.url,
+                                thumbnail: (_h = track.thumbnail) === null || _h === void 0 ? void 0 : _h.url,
                                 duration,
                                 requestee: user
                             });
@@ -238,7 +234,7 @@ module.exports = {
                 else {
                     const resource = yield fetchSong(url);
                     if (resource === null) {
-                        yield interaction.editReply("Error finding song, try again");
+                        yield interaction.editReply("Error finding song, try again, or resource was over time limit");
                         return;
                     }
                     // rebuild queue
@@ -288,7 +284,9 @@ module.exports = {
                     return;
                 }
                 client.player.play(currentResource.resource);
-                client.subscription = connection.subscribe(client.player);
+                if (!client.subscription) {
+                    client.subscription = connection.subscribe(client.player);
+                }
             }
             else {
                 connection = (0, voice_1.joinVoiceChannel)({
@@ -300,7 +298,7 @@ module.exports = {
                 client.queue = new discord_js_1.Collection();
                 const resource = yield fetchSong(url);
                 if (resource === null) {
-                    yield interaction.editReply("Error finding song, try again");
+                    yield interaction.editReply("Error finding song, try again, or resource was over time limit");
                     return;
                 }
                 client.queue.set(`0:${url}`, {
@@ -319,7 +317,7 @@ module.exports = {
                 client.player.play(nextResource.resource);
                 client.subscription = connection.subscribe(client.player);
             }
-            client.player.on(voice_1.AudioPlayerStatus.Idle, () => __awaiter(this, void 0, void 0, function* () {
+            client.player.once(voice_1.AudioPlayerStatus.Idle, () => __awaiter(this, void 0, void 0, function* () {
                 const key = client.queue.keyAt(0);
                 const nextKey = client.queue.keyAt(1);
                 client.queue.delete(key);
@@ -327,15 +325,16 @@ module.exports = {
                     // do nothing, be on standby
                     // check if current resource is finished playing
                     function disconnect() {
-                        var _a, _b;
+                        var _a, _b, _c;
                         return __awaiter(this, void 0, void 0, function* () {
-                            connection.destroy();
+                            (_a = client.subscription) === null || _a === void 0 ? void 0 : _a.connection.destroy();
                             client.queue.clear();
-                            (_a = client.subscription) === null || _a === void 0 ? void 0 : _a.unsubscribe();
-                            yield ((_b = interaction.channel) === null || _b === void 0 ? void 0 : _b.send("Disconnected after 3 minutes of activity"));
+                            (_b = client.subscription) === null || _b === void 0 ? void 0 : _b.unsubscribe();
+                            client.player.stop();
+                            yield ((_c = interaction.channel) === null || _c === void 0 ? void 0 : _c.send("Disconnected after 2 minutes of activity"));
                         });
                     }
-                    setTimeout(() => disconnect(), (5 * 60 * 1000));
+                    setTimeout(() => disconnect(), (2 * 60 * 1000));
                     return;
                 }
                 const nextResource = client.queue.get(nextKey);
@@ -344,8 +343,8 @@ module.exports = {
                     client.subscription = connection.subscribe(client.player);
                 }
             }));
-            client.player.on(voice_1.AudioPlayerStatus.Playing, () => __awaiter(this, void 0, void 0, function* () {
-                var _h;
+            client.player.once(voice_1.AudioPlayerStatus.Playing, () => __awaiter(this, void 0, void 0, function* () {
+                var _j;
                 const key = client.queue.keyAt(0);
                 const resource = client.queue.get(key);
                 const reply = new builders_1.EmbedBuilder()
@@ -364,10 +363,7 @@ module.exports = {
                     .setTimestamp(Date.now())
                     .setImage(resource.thumbnail)
                     .setColor(discord_js_1.Colors.Blurple);
-                yield ((_h = interaction.channel) === null || _h === void 0 ? void 0 : _h.send({ embeds: [reply] }));
-            }));
-            client.player.on("error", (error) => __awaiter(this, void 0, void 0, function* () {
-                yield interaction.editReply(`Something went wrong! ${error.message} with track: ${error.resource.metadata.title}`);
+                yield ((_j = interaction.channel) === null || _j === void 0 ? void 0 : _j.send({ embeds: [reply] }));
             }));
         });
     }

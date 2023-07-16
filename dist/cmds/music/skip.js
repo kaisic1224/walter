@@ -20,17 +20,13 @@ module.exports = {
         return __awaiter(this, void 0, void 0, function* () {
             const { client } = interaction;
             client.player.stop(true);
-            if (!client.queue) {
+            if (!client.queue || Array.from(client.queue.keys()).length === 0) {
                 yield interaction.reply("Cannot skip when nothing is playing");
                 return;
             }
             const key = client.queue.keyAt(0);
             const currentResource = client.queue.get(key);
             client.queue.delete(key);
-            if (Array.from(client.queue.keys()).length === 0) {
-                yield interaction.reply("Cannot skip when nothing is playing");
-                return;
-            }
             const embed = new builders_1.EmbedBuilder()
                 .setTitle(`Skipped current track: ${currentResource.title}`)
                 .setColor(discord_js_1.Colors.Fuchsia)
