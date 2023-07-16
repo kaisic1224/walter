@@ -10,16 +10,15 @@ module.exports = {
         async execute(interaction: ChatInputCommandInteraction) {
                 const { client } = interaction;
 
-                client.player.stop(true);
 
                 if (!client.queue || Array.from(client.queue.keys()).length === 0) {
                         await interaction.reply("Cannot skip when nothing is playing")
                         return;
                 }
+                client.player.stop(true);
 
                 const key = client.queue.keyAt(0);
                 const currentResource = client.queue.get(key);
-                client.queue.delete(key);
 
 
                 const embed = new EmbedBuilder()
