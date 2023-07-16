@@ -6,5 +6,6 @@ declare module "discord.js" {
                 commands: Collection<any, any>;
                 queue: Collection<any, any>;
                 player: AudioPlayer;
+                subscription: PlayerSubscription | undefined;
         }
 }

@@ -101,11 +101,13 @@ module.exports = {
                         .setColor(Colors.DarkOrange)
                 interaction.channel?.send({ embeds: [queueEmbed] })
                 await interaction.deferReply()
-                const audioPlayer = createAudioPlayer({
-                        behaviors: {
-                                noSubscriber: NoSubscriberBehavior.Play
-                        }
-                });
+                if (!client.player) {
+                        client.player = createAudioPlayer({
+                                behaviors: {
+                                        noSubscriber: NoSubscriberBehavior.Play
+                                }
+                        });
+                }
 
 
                 // if someone plays command while bot is already in channel
@@ -115,7 +117,6 @@ module.exports = {
                         await interaction.editReply("ok")
                         if (!client.queue) {
                                 client.queue = new Collection();
-                                client.player = audioPlayer;
                         }
                         connection = joinVoiceChannel({
                                 channelId,
@@ -269,16 +270,17 @@ module.exports = {
                                         })
                                 }
 
-                                const key = client.queue.keyAt(0);
-                                const currentResource = client.queue.get(key);
-                                // try to play new resource immediately if current resource is not started yet
-                                if (currentResource.resource.started === true) {
-                                        return;
-                                }
-
-                                audioPlayer.play(currentResource.resource);
-                                const subscription = connection.subscribe(audioPlayer)
                         }
+                        const key = client.queue.keyAt(0);
+                        const currentResource = client.queue.get(key);
+                        // try to play new resource immediately if current resource is not started yet
+                        if (currentResource.resource.started === true) {
+                                return;
+                        }
+
+                        client.player.play(currentResource.resource);
+                        client.subscription = connection.subscribe(client.player)
+
                 } else {
                         connection = joinVoiceChannel({
                                 channelId,
@@ -287,7 +289,6 @@ module.exports = {
                         })
                         await interaction.editReply("ok")
                         client.queue = new Collection();
-                        client.player = audioPlayer;
                         const resource = await fetchSong(url);
                         if (resource === null) {
                                 await interaction.editReply("Error finding song, try again")
@@ -308,30 +309,43 @@ module.exports = {
                         const key = client.queue.keyAt(0);
                         const nextResource = client.queue.get(key);
 
-                        audioPlayer.play(nextResource.resource);
-                        const subscription = connection.subscribe(audioPlayer);
+                        client.player.play(nextResource.resource);
+                        client.subscription = connection.subscribe(client.player);
                 }
 
 
 
 
-                audioPlayer.on(AudioPlayerStatus.Idle, async () => {
+                client.player.on(AudioPlayerStatus.Idle, async () => {
                         const key = client.queue.keyAt(0);
                         const nextKey = client.queue.keyAt(1);
                         client.queue.delete(key)
                         if (!nextKey) {
                                 // do nothing, be on standby
                                 // check if current resource is finished playing
+                                function disconnect() {
+                                        connection.destroy();
+                                        connection.disconnect();
+                                        client.queue.clear();
+                                        client.subscription?.unsubscribe();
+
+                                        interaction.channel?.send("Disconnected after 3 minutes of activity")
+                                }
+                                const debounceDisconnect = debounce(() => disconnect())
+                                debounceDisconnect();
                                 return;
                         }
                         const nextResource = client.queue.get(nextKey);
-                        audioPlayer.play(nextResource.resource);
+                        client.player.play(nextResource.resource);
 
-                        const subscription = connection.subscribe(audioPlayer);
+                        if (!client.subscription) {
+                                client.subscription = connection.subscribe(client.player);
+                        }
+
                 });
 
 
-                audioPlayer.on(AudioPlayerStatus.Playing, async () => {
+                client.player.on(AudioPlayerStatus.Playing, async () => {
                         const key = client.queue.keyAt(0);
                         const resource = client.queue.get(key)
                         const reply = new EmbedBuilder()
@@ -353,17 +367,10 @@ module.exports = {
                         interaction.channel?.send({ embeds: [reply] })
                 });
 
-                audioPlayer.on("error", async (error) => {
+                client.player.on("error", async (error) => {
                         await interaction.editReply(`Something went wrong! ${error.message} with track: ${(error.resource.metadata as any).title}`)
 
                 })
-                function disconnect() {
-                        connection.destroy();
-                        connection.disconnect();
 
-                        interaction.channel?.send("Disconnected after 3 minutes of activity")
-                }
-                const debounceDisconnect = debounce(() => disconnect())
-                debounceDisconnect();
         }
 }

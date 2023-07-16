@@ -110,11 +110,13 @@ module.exports = {
                 .setColor(discord_js_1.Colors.DarkOrange);
             (_a = interaction.channel) === null || _a === void 0 ? void 0 : _a.send({ embeds: [queueEmbed] });
             yield interaction.deferReply();
-            const audioPlayer = (0, voice_1.createAudioPlayer)({
-                behaviors: {
-                    noSubscriber: voice_1.NoSubscriberBehavior.Play
-                }
-            });
+            if (!client.player) {
+                client.player = (0, voice_1.createAudioPlayer)({
+                    behaviors: {
+                        noSubscriber: voice_1.NoSubscriberBehavior.Play
+                    }
+                });
+            }
             // if someone plays command while bot is already in channel
             let connection;
             const memberClient = guild === null || guild === void 0 ? void 0 : guild.members.cache.get(client.user.id);
@@ -122,7 +124,6 @@ module.exports = {
                 yield interaction.editReply("ok");
                 if (!client.queue) {
                     client.queue = new discord_js_1.Collection();
-                    client.player = audioPlayer;
                 }
                 connection = (0, voice_1.joinVoiceChannel)({
                     channelId,
@@ -279,15 +280,15 @@ module.exports = {
                             client.queue.set(value[0], value[1]);
                         });
                     }
-                    const key = client.queue.keyAt(0);
-                    const currentResource = client.queue.get(key);
-                    // try to play new resource immediately if current resource is not started yet
-                    if (currentResource.resource.started === true) {
-                        return;
-                    }
-                    audioPlayer.play(currentResource.resource);
-                    const subscription = connection.subscribe(audioPlayer);
                 }
+                const key = client.queue.keyAt(0);
+                const currentResource = client.queue.get(key);
+                // try to play new resource immediately if current resource is not started yet
+                if (currentResource.resource.started === true) {
+                    return;
+                }
+                client.player.play(currentResource.resource);
+                client.subscription = connection.subscribe(client.player);
             }
             else {
                 connection = (0, voice_1.joinVoiceChannel)({
@@ -297,7 +298,6 @@ module.exports = {
                 });
                 yield interaction.editReply("ok");
                 client.queue = new discord_js_1.Collection();
-                client.player = audioPlayer;
                 const resource = yield fetchSong(url);
                 if (resource === null) {
                     yield interaction.editReply("Error finding song, try again");
@@ -316,23 +316,35 @@ module.exports = {
                 });
                 const key = client.queue.keyAt(0);
                 const nextResource = client.queue.get(key);
-                audioPlayer.play(nextResource.resource);
-                const subscription = connection.subscribe(audioPlayer);
+                client.player.play(nextResource.resource);
+                client.subscription = connection.subscribe(client.player);
             }
-            audioPlayer.on(voice_1.AudioPlayerStatus.Idle, () => __awaiter(this, void 0, void 0, function* () {
+            client.player.on(voice_1.AudioPlayerStatus.Idle, () => __awaiter(this, void 0, void 0, function* () {
                 const key = client.queue.keyAt(0);
                 const nextKey = client.queue.keyAt(1);
                 client.queue.delete(key);
                 if (!nextKey) {
                     // do nothing, be on standby
                     // check if current resource is finished playing
+                    function disconnect() {
+                        var _a, _b;
+                        connection.destroy();
+                        connection.disconnect();
+                        client.queue.clear();
+                        (_a = client.subscription) === null || _a === void 0 ? void 0 : _a.unsubscribe();
+                        (_b = interaction.channel) === null || _b === void 0 ? void 0 : _b.send("Disconnected after 3 minutes of activity");
+                    }
+                    const debounceDisconnect = debounce(() => disconnect());
+                    debounceDisconnect();
                     return;
                 }
                 const nextResource = client.queue.get(nextKey);
-                audioPlayer.play(nextResource.resource);
-                const subscription = connection.subscribe(audioPlayer);
+                client.player.play(nextResource.resource);
+                if (!client.subscription) {
+                    client.subscription = connection.subscribe(client.player);
+                }
             }));
-            audioPlayer.on(voice_1.AudioPlayerStatus.Playing, () => __awaiter(this, void 0, void 0, function* () {
+            client.player.on(voice_1.AudioPlayerStatus.Playing, () => __awaiter(this, void 0, void 0, function* () {
                 var _h;
                 const key = client.queue.keyAt(0);
                 const resource = client.queue.get(key);
@@ -354,17 +366,9 @@ module.exports = {
                     .setColor(discord_js_1.Colors.Blurple);
                 (_h = interaction.channel) === null || _h === void 0 ? void 0 : _h.send({ embeds: [reply] });
             }));
-            audioPlayer.on("error", (error) => __awaiter(this, void 0, void 0, function* () {
+            client.player.on("error", (error) => __awaiter(this, void 0, void 0, function* () {
                 yield interaction.editReply(`Something went wrong! ${error.message} with track: ${error.resource.metadata.title}`);
             }));
-            function disconnect() {
-                var _a;
-                connection.destroy();
-                connection.disconnect();
-                (_a = interaction.channel) === null || _a === void 0 ? void 0 : _a.send("Disconnected after 3 minutes of activity");
-            }
-            const debounceDisconnect = debounce(() => disconnect());
-            debounceDisconnect();
         });
     }
 };
