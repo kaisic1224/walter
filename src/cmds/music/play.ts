@@ -312,7 +312,7 @@ module.exports = {
 
 
 
-                client.player.once(AudioPlayerStatus.Idle, async () => {
+                client.player.on(AudioPlayerStatus.Idle, async () => {
                         const key = client.queue.keyAt(0);
                         const nextKey = client.queue.keyAt(1);
                         client.queue.delete(key)
@@ -336,11 +336,10 @@ module.exports = {
                         if (!client.subscription) {
                                 client.subscription = connection!.subscribe(client.player);
                         }
-
                 });
 
 
-                client.player.once(AudioPlayerStatus.Playing, async () => {
+                client.player.on(AudioPlayerStatus.Playing, async () => {
                         const key = client.queue.keyAt(0);
                         const resource = client.queue.get(key)
                         const reply = new EmbedBuilder()

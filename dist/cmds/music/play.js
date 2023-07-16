@@ -317,7 +317,7 @@ module.exports = {
                 client.player.play(nextResource.resource);
                 client.subscription = connection.subscribe(client.player);
             }
-            client.player.once(voice_1.AudioPlayerStatus.Idle, () => __awaiter(this, void 0, void 0, function* () {
+            client.player.on(voice_1.AudioPlayerStatus.Idle, () => __awaiter(this, void 0, void 0, function* () {
                 const key = client.queue.keyAt(0);
                 const nextKey = client.queue.keyAt(1);
                 client.queue.delete(key);
@@ -343,7 +343,7 @@ module.exports = {
                     client.subscription = connection.subscribe(client.player);
                 }
             }));
-            client.player.once(voice_1.AudioPlayerStatus.Playing, () => __awaiter(this, void 0, void 0, function* () {
+            client.player.on(voice_1.AudioPlayerStatus.Playing, () => __awaiter(this, void 0, void 0, function* () {
                 var _j;
                 const key = client.queue.keyAt(0);
                 const resource = client.queue.get(key);

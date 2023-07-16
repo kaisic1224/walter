@@ -39,7 +39,7 @@ module.exports = {
                 let index = 1;
                 const fields = Array.from(client.queue.mapValues((resourceItem) => {
                     const field = {
-                        name: `${index}. ${resourceItem.title} (${Math.floor(resourceItem.resource.playbackDuration / (1000 * 60))}: ${Math.floor((resourceItem.resource.playbackDuration % 60000) / 1000)} / ${resourceItem.duration})`,
+                        name: `${index}. ${resourceItem.title} (${Math.floor(resourceItem.resource.playbackDuration / (1000 * 60))}:${Math.floor((resourceItem.resource.playbackDuration % 60000) / 1000)} / ${resourceItem.duration})`,
                         value: `Requested by: ${resourceItem.requestee.username}`,
                         inline: false
                     };

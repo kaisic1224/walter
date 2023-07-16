@@ -10,7 +10,6 @@ module.exports = {
         async execute(interaction: ChatInputCommandInteraction) {
                 const { client } = interaction;
 
-
                 if (!client.queue || Array.from(client.queue.keys()).length === 0) {
                         await interaction.reply("Cannot skip when nothing is playing")
                         return;
