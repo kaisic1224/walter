@@ -312,6 +312,7 @@ module.exports = {
 
 
 
+<<<<<<< Updated upstream
                 client.player.once(AudioPlayerStatus.Idle, async () => {
                         const key = client.queue.keyAt(0);
                         const nextKey = client.queue.keyAt(1);
@@ -324,15 +325,31 @@ module.exports = {
                                         client.queue.clear();
                                         client.subscription?.unsubscribe();
                                         client.player.stop();
+=======
+                if (client.player.listenerCount(AudioPlayerStatus.Idle) === 0) {
+                        client.player.on(AudioPlayerStatus.Idle, async () => {
+                                const key = client.queue.keyAt(0);
+                                const nextKey = client.queue.keyAt(1);
+                                client.queue.delete(key)
+                                if (!nextKey) {
+                                        // do nothing, be on standby
+                                        // check if current resource is finished playing
+                                        async function disconnect() {
+                                                client.subscription?.connection.destroy();
+                                                client.queue.clear();
+                                                client.subscription?.unsubscribe();
+                                                client.player.stop();
+>>>>>>> Stashed changes
 
-                                        await interaction.channel?.send("Disconnected after 2 minutes of activity")
+                                                await interaction.channel?.send("Disconnected after 2 minutes of activity")
+                                        }
+                                        setTimeout(() => disconnect(), (2 * 60 * 1000))
+                                        return;
                                 }
-                                setTimeout(() => disconnect(), (2 * 60 * 1000))
-                                return;
-                        }
-                        const nextResource = client.queue.get(nextKey);
-                        client.player.play(nextResource.resource);
+                                const nextResource = client.queue.get(nextKey);
+                                client.player.play(nextResource.resource);
 
+<<<<<<< Updated upstream
                         if (!client.subscription) {
                                 client.subscription = connection!.subscribe(client.player);
                         }
@@ -361,6 +378,38 @@ module.exports = {
                                 .setColor(Colors.Blurple)
                         await interaction.channel?.send({ embeds: [reply] })
                 });
+=======
+                                if (!client.subscription) {
+                                        client.subscription = connection!.subscribe(client.player);
+                                }
+                        });
+                }
+
+
+                if (client.player.listenerCount(AudioPlayerStatus.Playing) === 0) {
+                        client.player.on(AudioPlayerStatus.Playing, async () => {
+                                const key = client.queue.keyAt(0);
+                                const resource = client.queue.get(key)
+                                const reply = new EmbedBuilder()
+                                        .setTitle(resource.title)
+                                        .setURL(resource.url)
+                                        .setDescription('`[0:00 / ' + resource.duration + ']`')
+                                        .setAuthor({
+                                                iconURL: resource.ytChannelAvatar,
+                                                name: resource.ytChannelName,
+                                                url: resource.ytChannelLink
+                                        })
+                                        .setFooter({
+                                                iconURL: resource.requestee.displayAvatarURL() || resource.requestee.defaultAvatarURL,
+                                                text: `Requested by: ${resource.requestee.username}`
+                                        })
+                                        .setTimestamp(Date.now())
+                                        .setImage(resource.thumbnail)
+                                        .setColor(Colors.Blurple)
+                                await interaction.channel?.send({ embeds: [reply] })
+                        });
+                }
+>>>>>>> Stashed changes
 
         }
 }
