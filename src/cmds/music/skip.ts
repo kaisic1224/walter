@@ -14,11 +14,11 @@ module.exports = {
                         await interaction.reply("Cannot skip when nothing is playing")
                         return;
                 }
-                client.player.stop(true);
 
                 const key = client.queue.keyAt(0);
                 const currentResource = client.queue.get(key);
 
+                client.player.stop(true);
 
                 const embed = new EmbedBuilder()
                         .setTitle(`Skipped current track: ${currentResource.title}`)
