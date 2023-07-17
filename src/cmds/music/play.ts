@@ -329,7 +329,11 @@ module.exports = {
 
                                                 await interaction.channel?.send("Disconnected after 2 minutes of activity")
                                         }
-                                        setTimeout(() => disconnect(), (2 * 60 * 1000))
+                                        setTimeout(() => {
+                                                if (Array.from(client.queue.keys()).length === 0) {
+                                                        disconnect()
+                                                } else return;
+                                        }, (2 * 60 * 1000))
                                         return;
                                 }
                                 const nextResource = client.queue.get(nextKey);
