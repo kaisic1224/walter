@@ -335,7 +335,14 @@ module.exports = {
                                 yield ((_c = interaction.channel) === null || _c === void 0 ? void 0 : _c.send("Disconnected after 2 minutes of activity"));
                             });
                         }
-                        setTimeout(() => disconnect(), (2 * 60 * 1000));
+                        setTimeout(() => __awaiter(this, void 0, void 0, function* () {
+                            if (Array.from(client.queue.keys()).length === 0) {
+                                yield disconnect();
+                            }
+                            else {
+                                return;
+                            }
+                        }), (2 * 60 * 1000));
                         return;
                     }
                     const nextResource = client.queue.get(nextKey);
