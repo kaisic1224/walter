@@ -43,7 +43,6 @@ module.exports = {
                                 param = searchParams.get('v') || url.split('.be/')[1]
                         }
                         search = await play.search(song, { source: { youtube: 'video' }, limit: 1 })
-                        console.log(url)
 
                         url = search[0].url;
                         title = search[0].title || "packgod stole your hair";
@@ -279,22 +278,90 @@ module.exports = {
                         })
                         await interaction.editReply("ok")
                         client.queue = new Collection();
-                        const resource = await fetchSong(url);
-                        if (resource === null) {
-                                await interaction.editReply("Error finding song, try again, or resource was over time limit")
-                                return;
+                        if (isSpotify) {
+                                if (play.is_expired()) {
+                                        await play.refreshToken();
+                                }
+                                if (!play.sp_validate(url)) {
+                                        await interaction.editReply("Not a valid link");
+                                        return;
+                                }
+                                const pathname = play.sp_validate(url);
+                                const spData = await play.spotify(url);
+                                if (pathname === 'playlist') {
+                                        const tracks: SpotifyTrack[] = await (spData as SpotifyPlaylist).all_tracks();
+                                        for (let i = 0; i < tracks.length; i++) {
+                                                // const qs = await play.search(`${tracks[i].name} ${tracks[i].artists[0].name}`, { limit: 1, source: { youtube: 'video' } })
+                                                // const stream = await play.stream(qs[0].url)
+                                                // const resource = createAudioResource(stream.stream, { inputType: stream.type })
+                                                duration = `${Math.floor(tracks[i].durationInSec / 60)}:${tracks[i].durationInSec % 60 < 10 ? '0' + tracks[i].durationInSec % 60 : tracks[i].durationInSec % 60}`
+                                                client.queue.set(`${i}:${tracks[i].url}`, {
+                                                        resource: `${tracks[i].name} ${tracks[i].artists[0].name}`,
+                                                        url: tracks[i].url,
+                                                        title: tracks[i].name,
+                                                        ytChannelName: tracks[i].artists.map((artist) => artist.name).join(" • "),
+                                                        ytChannelAvatar: nathanFace,
+                                                        ytChannelLink: tracks[i].artists[0].url,
+                                                        thumbnail: tracks[i].thumbnail?.url,
+                                                        duration,
+                                                        requestee: user
+                                                });
+                                        }
+                                } else if (pathname === 'track') {
+                                        const qs = await play.search(`${(spData as SpotifyTrack).name}`, { limit: 1, source: { youtube: 'video' } })
+                                        const stream = await play.stream(qs[0].url)
+                                        const resource = createAudioResource(stream.stream, { inputType: stream.type })
+                                        const queueNumber = Array.from(client.queue.keys()).length
+                                        client.queue.set(`${queueNumber}:${url}`, {
+                                                resource,
+                                                url: (spData as SpotifyTrack).url,
+                                                title: (spData as SpotifyTrack).name,
+                                                ytChannelName: (spData as SpotifyTrack).artists.map((artist) => artist.name).join(" • "),
+                                                ytChannelAvatar: nathanFace,
+                                                ytChannelLink: (spData as SpotifyTrack).artists[0].url,
+                                                thumbnail: (spData as SpotifyTrack).thumbnail?.url,
+                                                duration,
+                                                requestee: user
+                                        });
+
+                                } else if (pathname === 'album') {
+                                        const tracks: SpotifyTrack[] = await (spData as SpotifyAlbum).all_tracks();
+                                        tracks.map(async (track, index) => {
+                                                // const qs = await play.search(`${track.name} ${track.artists[0].name}`, { limit: 1, source: { youtube: 'video' } })
+                                                // const stream = await play.stream(qs[0].url)
+                                                // const resource = createAudioResource(stream.stream, { inputType: stream.type })
+                                                duration = `${Math.floor(track.durationInSec / 60)}:${track.durationInSec % 60 < 10 ? '0' + track.durationInSec % 60 : track.durationInSec % 60}`
+                                                client.queue.set(`${index}:${track.url}`, {
+                                                        resource: `${tracks[index].name} ${tracks[index].artists[0].name}`,
+                                                        url: track.url,
+                                                        title: track.name,
+                                                        ytChannelName: track.artists.map((artist) => artist.name).join(" • "),
+                                                        ytChannelAvatar: nathanFace,
+                                                        ytChannelLink: track.artists[0].url,
+                                                        thumbnail: track.thumbnail?.url,
+                                                        duration,
+                                                        requestee: user
+                                                });
+                                        })
+                                }
+                        } else {
+                                const resource = await fetchSong(url);
+                                if (resource === null) {
+                                        await interaction.editReply("Error finding song, try again, or resource was over time limit")
+                                        return;
+                                }
+                                client.queue.set(`0:${url}`, {
+                                        resource,
+                                        url,
+                                        title,
+                                        ytChannelName,
+                                        ytChannelAvatar,
+                                        ytChannelLink,
+                                        thumbnail,
+                                        duration,
+                                        requestee: user
+                                });
                         }
-                        client.queue.set(`0:${url}`, {
-                                resource,
-                                url,
-                                title,
-                                ytChannelName,
-                                ytChannelAvatar,
-                                ytChannelLink,
-                                thumbnail,
-                                duration,
-                                requestee: user
-                        });
 
                         const key = client.queue.keyAt(0);
                         const nextResource = client.queue.get(key);
@@ -302,8 +369,6 @@ module.exports = {
                         client.player.play(nextResource.resource);
                         client.subscription = connection.subscribe(client.player);
                 }
-
-
 
 
 

@@ -17,7 +17,6 @@ COPY . .
 
 # Run script
 RUN chmod +x ./get-credentials.sh
-RUN ./get-credentials.sh
 
 # Default port to run app on
 EXPOSE 8080
@@ -25,4 +24,4 @@ EXPOSE 8080
 RUN cat .data/spotify.data
 
 # Start server
-CMD [ "npm", "start" ]
+CMD "./get-credentials.sh"
