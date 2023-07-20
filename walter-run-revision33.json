@@ -19,11 +19,11 @@
             "secrets": [
                 {
                         "name": "SPOTIFY_CLIENT_ID",
-                        "valueFrom": "arn:aws:secretsmanager:us-east-1:355863132864:secret:prod/walter/spotify-yHSSUY:SPOTIFY_CLIENT_ID"
+                        "valueFrom": "arn:aws:secretsmanager:us-east-1:355863132864:secret:prod/walter/spotify-yHSSUY:SPOTIFY_CLIENT_ID::"
                 },
                 {
                         "name": "SPOTIFY_CLIENT_SECRET",
-                        "valueFrom": "arn:aws:secretsmanager:us-east-1:355863132864:secret:prod/walter/spotify-yHSSUY:SPOTIFY_CLIENT_SECRET"
+                        "valueFrom": "arn:aws:secretsmanager:us-east-1:355863132864:secret:prod/walter/spotify-yHSSUY:SPOTIFY_CLIENT_SECRET::"
                 }
             ],
             "environmentFiles": [
