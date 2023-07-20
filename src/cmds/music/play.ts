@@ -365,6 +365,13 @@ module.exports = {
 
                         const key = client.queue.keyAt(0);
                         const nextResource = client.queue.get(key);
+                        if (typeof nextResource.resource === "string") {
+                                const qs = await play.search(nextResource.resource, { limit: 1, source: { youtube: 'video' } })
+                                const stream = await play.stream(qs[0].url)
+                                const resource = createAudioResource(stream.stream, { inputType: stream.type })
+                                nextResource.resource = resource;
+
+                        }
 
                         client.player.play(nextResource.resource);
                         client.subscription = connection.subscribe(client.player);

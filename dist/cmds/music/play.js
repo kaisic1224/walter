@@ -375,6 +375,12 @@ module.exports = {
                 }
                 const key = client.queue.keyAt(0);
                 const nextResource = client.queue.get(key);
+                if (typeof nextResource.resource === "string") {
+                    const qs = yield play_dl_1.default.search(nextResource.resource, { limit: 1, source: { youtube: 'video' } });
+                    const stream = yield play_dl_1.default.stream(qs[0].url);
+                    const resource = (0, voice_1.createAudioResource)(stream.stream, { inputType: stream.type });
+                    nextResource.resource = resource;
+                }
                 client.player.play(nextResource.resource);
                 client.subscription = connection.subscribe(client.player);
             }
