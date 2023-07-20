@@ -11,11 +11,13 @@ COPY package*.json ./
 RUN npm ci --omit=dev
 # If you are building your code for production
 # RUN npm ci --omit=dev
-RUN chmod +x ./get-credentials.sh
-RUN ./get-credentials.sh
 
 # Bundle app source
 COPY . .
+
+# Run script
+RUN chmod +x ./get-credentials.sh
+RUN ./get-credentials.sh
 
 # Default port to run app on
 EXPOSE 8080
