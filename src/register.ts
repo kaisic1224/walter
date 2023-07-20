@@ -41,7 +41,7 @@ const guildID = "800080122732347413";
                         { body: commands },
                 );
 
-                console.log(`Successfully reloaded ${data.length} application (/) commands.`);
+                console.log(`Successfully reloaded ${(data as any).length} application (/) commands.`);
         } catch (error) {
                 // And of course, make sure you catch and log any errors!
                 console.error(error);

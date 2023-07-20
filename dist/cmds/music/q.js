@@ -38,8 +38,15 @@ module.exports = {
             else {
                 let index = 1;
                 const fields = Array.from(client.queue.mapValues((resourceItem) => {
+                    let duration;
+                    if (typeof resourceItem.resource === "string") {
+                        duration = `0:00 / ${resourceItem.duration}`;
+                    }
+                    else {
+                        duration = `${Math.floor(resourceItem.resource.playbackDuration / (1000 * 60))}:${((resourceItem.resource.playbackDuration % 60000) / 1000) < 10 ? '0' + Math.round((resourceItem.resource.playbackDuration % 60000) / 1000) : Math.floor((resourceItem.resource.playbackDuration % 60000) / 1000)} / ${resourceItem.duration}`;
+                    }
                     const field = {
-                        name: `${index}. ${resourceItem.title} (${Math.floor(resourceItem.resource.playbackDuration / (1000 * 60))}:${Math.floor((resourceItem.resource.playbackDuration % 60000) / 1000)} / ${resourceItem.duration})`,
+                        name: `${index}. ${resourceItem.title} (${duration})`,
                         value: `Requested by: ${resourceItem.requestee.username}`,
                         inline: false
                     };
