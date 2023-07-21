@@ -399,6 +399,7 @@ module.exports = {
                                 client.queue.clear();
                                 (_b = client.subscription) === null || _b === void 0 ? void 0 : _b.unsubscribe();
                                 client.player.stop();
+                                client.player = undefined;
                                 yield ((_c = interaction.channel) === null || _c === void 0 ? void 0 : _c.send("Disconnected after 2 minutes of activity"));
                             });
                         }

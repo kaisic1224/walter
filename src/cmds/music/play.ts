@@ -392,6 +392,7 @@ module.exports = {
                                                 client.queue.clear();
                                                 client.subscription?.unsubscribe();
                                                 client.player.stop();
+                                                (client.player as any) = undefined;
 
                                                 await interaction.channel?.send("Disconnected after 2 minutes of activity")
                                         }
