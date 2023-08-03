@@ -1,2 +1,9 @@
 node_modules
 npm-debug.log
+.git/
+.github/
+README.md
+todo.txt
+walter-run-revision33.json
+.gitignore
+.env*
