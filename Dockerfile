@@ -9,11 +9,13 @@ WORKDIR /usr/src/app
 COPY package*.json ./
 COPY tsconfig.json .
 
+RUN npm run install
+
+RUN npm run build
+
 RUN npm ci --omit=dev
 # If you are building your code for production
 # RUN npm ci --omit=dev
-
-RUN npm run build
 
 # Bundle app source
 COPY . .
