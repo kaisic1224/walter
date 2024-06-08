@@ -2,6 +2,7 @@ import { Client, Collection, Events, GatewayIntentBits } from "discord.js";
 import * as path from "path";
 import * as fs from "fs";
 import { getCommands } from '../src/app'
+import 'dotenv/config'
 
 let client;
 const respondInteraction = async (interaction) => {
